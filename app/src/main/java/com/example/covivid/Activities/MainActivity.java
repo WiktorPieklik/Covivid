@@ -1,7 +1,9 @@
-package com.example.covivid;
+package com.example.covivid.Activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+
+import com.example.covivid.R;
 
 public class MainActivity extends Activity {
 
