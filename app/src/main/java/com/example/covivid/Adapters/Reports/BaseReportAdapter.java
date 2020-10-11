@@ -4,7 +4,9 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -41,9 +43,13 @@ public class BaseReportAdapter extends RecyclerView.Adapter<BaseReportAdapter.Re
     @Override
     public void onBindViewHolder(@NonNull ReportViewHolder holder, int position)
     {
+        holder.coronaPic.setAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_transition));
+        holder.container.setAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_scale));
+
         holder.countryTxt.setText(reports.get(position).getCountry());
         holder.casesTxt.setText(String.valueOf(reports.get(position).getCases()));
         holder.statusTxt.setText(reports.get(position).getStatus());
+        holder.coronaPic.setImageResource(R.drawable.covid_img);
     }
 
     @Override
@@ -56,8 +62,10 @@ public class BaseReportAdapter extends RecyclerView.Adapter<BaseReportAdapter.Re
     {
         TextView countryTxt, casesTxt, statusTxt;
         ImageView coronaPic;
+        RelativeLayout container;
         public ReportViewHolder(@NonNull View itemView) {
             super(itemView);
+            container = itemView.findViewById(R.id.base_report_container);
             countryTxt = itemView.findViewById(R.id.base_report_item_title);
             casesTxt = itemView.findViewById(R.id.base_report_item_description);
             statusTxt = itemView.findViewById(R.id.base_report_item_status);
