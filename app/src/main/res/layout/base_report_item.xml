@@ -55,7 +55,7 @@
     </RelativeLayout>
 
     <ImageView
-        android:id="@+id/img_covid"
+        android:id="@+id/base_report_img"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_marginStart="32dp"
