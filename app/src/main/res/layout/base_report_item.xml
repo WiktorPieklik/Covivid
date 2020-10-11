@@ -8,7 +8,7 @@
     android:layout_marginTop="8dp">
 
     <RelativeLayout
-        android:id="@+id/relativeLayout"
+        android:id="@+id/base_report_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -57,13 +57,13 @@
 
     <ImageView
         android:id="@+id/base_report_img"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="45dp"
+        android:layout_height="40dp"
         android:layout_marginStart="32dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toStartOf="@+id/relativeLayout"
+        app:layout_constraintEnd_toStartOf="@+id/base_report_container"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/relativeLayout"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toTopOf="@+id/base_report_container"
+        tools:src="@drawable/covid_img" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
