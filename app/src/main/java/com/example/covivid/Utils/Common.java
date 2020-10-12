@@ -13,7 +13,7 @@ public class Common
 {
     public static final String BASE_URL = "https://api.covid19api.com";
 
-    public static BaseCovidReport baseReport = null;
+    public static BaseCovidReport baseReport = null; //there can be only one base report at the time
 
     /**
      * Must be called before setContentView()
