@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        requestFullScreen();
+        Common.requestFullScreenActivity(this);
         setContentView(R.layout.activity_main);
         init();
         loadBaseReports();
@@ -40,15 +40,6 @@ public class MainActivity extends AppCompatActivity
     {
         baseReportRecycler = findViewById(R.id.base_report_rv);
         api = Common.getApi();
-    }
-
-    private void requestFullScreen()
-    {
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getSupportActionBar().hide();
     }
 
     private void loadBaseReports()
