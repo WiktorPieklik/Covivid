@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Covivid</string>
+    <string name="cases">Przypadki</string>
+    <string name="total_cases">Wszystkie przypadki</string>
+    <string name="status">Status</string>
+    <string name="latitude">Szerokość geograficzna</string>
+    <string name="longitude">Długość geograficzna</string>
+    <string name="date">Data</string>
+    <string name="country">Kraj</string>
 </resources>
