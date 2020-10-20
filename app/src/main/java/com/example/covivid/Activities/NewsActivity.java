@@ -31,7 +31,7 @@ public class NewsActivity extends AppCompatActivity {
         Common.requestFullScreenActivity(this);
         setContentView(R.layout.activity_news);
         recycler = findViewById(R.id.news_rv);
-        theGuardianApi = Common.getNewsApi();
+        theGuardianApi = Common.getNewsApi(this);
         getNews();
     }
 
