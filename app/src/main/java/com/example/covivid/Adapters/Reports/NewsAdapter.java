@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -44,7 +43,10 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     public void onBindViewHolder(@NonNull NewsViewHolder holder, int position) {
         holder.headline.setText(news.get(position).getFields().getHeadline());
         holder.brief.setText(news.get(position).getFields().getTrailText());
-        Picasso.get().load(news.get(position).getFields().getThumbnail()).into(holder.thumbnail);
+        Picasso
+                .get()
+                .load(news.get(position).getFields().getThumbnail())
+                .into(holder.thumbnail);
     }
 
     @Override

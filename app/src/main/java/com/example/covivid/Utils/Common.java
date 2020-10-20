@@ -8,8 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.covivid.Model.CovidReport.BaseCovidReport;
 import com.example.covivid.Retrofit.ICovidAPI;
-import com.example.covivid.Retrofit.RetrofitClient;
 import com.example.covivid.Retrofit.ITheGuardianAPI;
+import com.example.covivid.Retrofit.RetrofitClient;
 
 public class Common
 {
