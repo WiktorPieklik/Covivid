@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.covivid.Activities.BaseReportActivity;
 import com.example.covivid.Contracts.IItemClickListener;
-import com.example.covivid.Model.BaseCovidReport;
+import com.example.covivid.Model.CovidReport.BaseCovidReport;
 import com.example.covivid.R;
 import com.example.covivid.Utils.Common;
 

@@ -1,15 +1,13 @@
 package com.example.covivid.Activities;
 
 import android.os.Bundle;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.covivid.Adapters.Reports.BaseReportAdapter;
-import com.example.covivid.Model.BaseCovidReport;
+import com.example.covivid.Model.CovidReport.BaseCovidReport;
 import com.example.covivid.R;
 import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Utils.Common;
