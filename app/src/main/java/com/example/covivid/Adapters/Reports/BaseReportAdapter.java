@@ -47,7 +47,7 @@ public class BaseReportAdapter extends RecyclerView.Adapter<BaseReportAdapter.Re
 
     @SuppressLint("DefaultLocale")
     @Override
-    public void onBindViewHolder(@NonNull ReportViewHolder holder, int position)
+    public void onBindViewHolder(@NonNull ReportViewHolder holder, final int position)
     {
         holder.coronaPic.setAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_transition));
         holder.container.setAnimation(AnimationUtils.loadAnimation(context, R.anim.fade_scale));
@@ -62,9 +62,10 @@ public class BaseReportAdapter extends RecyclerView.Adapter<BaseReportAdapter.Re
                         context.getResources().getString(R.string.status),
                         reports.get(position).getStatus()));
         holder.coronaPic.setImageResource(R.drawable.covid_img);
-        Common.baseReport = reports.get(position);
-        holder.setClickListener(
-                view -> context.startActivity(new Intent(context, BaseReportActivity.class)));
+        holder.setClickListener(view -> {
+            Common.baseReport = reports.get(position);
+            context.startActivity(new Intent(context, BaseReportActivity.class));
+        });
     }
 
     @Override
