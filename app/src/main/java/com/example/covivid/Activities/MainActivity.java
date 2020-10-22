@@ -17,7 +17,6 @@ import com.example.covivid.R;
 import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Utils.Common;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
