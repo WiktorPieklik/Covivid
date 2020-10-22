@@ -1,27 +1,43 @@
 package com.example.covivid.Activities;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.util.Pair;
 
-import com.example.covivid.Adapters.Reports.BaseReportAdapter;
-import com.example.covivid.Model.CovidReport.BaseCovidReport;
+import com.example.covivid.Model.CovidReport.Country;
 import com.example.covivid.R;
 import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Utils.Common;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.datepicker.MaterialPickerOnPositiveButtonClickListener;
+import com.google.android.material.textfield.TextInputLayout;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+//TODO: clean this mess
 public class MainActivity extends AppCompatActivity
 {
-    RecyclerView baseReportRecycler;
-    BaseReportAdapter baseReportAdapter;
+    TextInputLayout countriesInput;
+    Button dateRangePicker;
+    AutoCompleteTextView countryAutocomplete;
+    Map<String, String> countries;
+    MaterialDatePicker<Pair<Long, Long>> picker;
     ICovidAPI api;
 
     @Override
@@ -31,42 +47,81 @@ public class MainActivity extends AppCompatActivity
         Common.requestFullScreenActivity(this);
         setContentView(R.layout.activity_main);
         init();
-        loadBaseReports();
+        loadCountries();
     }
 
     private void init()
     {
-        baseReportRecycler = findViewById(R.id.base_report_rv);
+        countriesInput = findViewById(R.id.country_dropdown);
+        countryAutocomplete = findViewById(R.id.country_autocomplete);
+        dateRangePicker = findViewById(R.id.date_range_picker);
+        countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
+            String key = parent.getItemAtPosition(position).toString();
+            String slug = countries.get(key);
+            hideKeyboard(view);
+            dateRangePicker.setVisibility(View.VISIBLE);
+            Toast.makeText(MainActivity.this, slug, Toast.LENGTH_SHORT).show();
+        });
+        initDateRangePicker();
+        dateRangePicker.setOnClickListener(view -> picker.show(getSupportFragmentManager(), picker.toString()));
         api = Common.getApi();
     }
 
-    private void loadBaseReports()
+    private void initDateRangePicker()
     {
-        //TODO: Remove hardcoded params
-        Call<List<BaseCovidReport>> call = api.getByCountry(
-                "poland",
-                "2020-09-09T00:00:00Z",
-                "2020-10-11T00:00:00Z");
-        call.enqueue(new Callback<List<BaseCovidReport>>() {
+        MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
+        builder
+                .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+                .setSelection(new Pair<>(MaterialDatePicker.todayInUtcMilliseconds(), MaterialDatePicker.todayInUtcMilliseconds()))
+                .setTitleText("Wybierz daty");
+        picker = builder.build();
+        picker.addOnPositiveButtonClickListener(selection -> {
+            Date first = new Date(selection.first);
+            Date second = new Date(selection.second);
+            Toast.makeText(MainActivity.this, String.format("First date: %s, second date: %s", first.toString(), second.toString()), Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void hideKeyboard(View view)
+    {
+        InputMethodManager inputMethodManager = (InputMethodManager)view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+    }
+
+    private void loadCountries()
+    {
+        Call<List<Country>> call = api.getCountries();
+        call.enqueue(new Callback<List<Country>>() {
             @Override
-            public void onResponse(Call<List<BaseCovidReport>> call, Response<List<BaseCovidReport>> response) {
+            public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
                 if(response.isSuccessful()) {
-                    List<BaseCovidReport> reports = response.body();
-                    displayBaseReports(reports);
+                    List<Country> countriesList = response.body();
+                    countries = new HashMap<>();
+                    for(Country country : countriesList) {
+                        countries.put(country.getName(), country.getSlug());
+                    }
+                    displayCountries(countriesList);
                 }
             }
 
             @Override
-            public void onFailure(Call<List<BaseCovidReport>> call, Throwable t) {
+            public void onFailure(Call<List<Country>> call, Throwable t) {
 
             }
         });
     }
 
-    private void displayBaseReports(List<BaseCovidReport> reports)
+    private void displayCountries(List<Country> countries)
     {
-        baseReportAdapter = new BaseReportAdapter(this, reports);
-        baseReportRecycler.setAdapter(baseReportAdapter);
-        baseReportRecycler.setLayoutManager(new LinearLayoutManager(this));
+        List<String> countriesNames = new ArrayList<>();
+        for(Country country : countries) {
+            countriesNames.add(country.getName());
+        }
+        ArrayAdapter<String> countryAdapter = new ArrayAdapter<>(
+                MainActivity.this,
+                R.layout.country_dropdown_item,
+                countriesNames
+        );
+        countryAutocomplete.setAdapter(countryAdapter);
     }
 }

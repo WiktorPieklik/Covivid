@@ -7,4 +7,6 @@
     <string name="longitude">Długość geograficzna</string>
     <string name="date">Data</string>
     <string name="country">Kraj</string>
+    <string name="country_picker_hint">Wybierz kraj</string>
+    <string name="choose_date_range">Wybierz przedział czasowy</string>
 </resources>
