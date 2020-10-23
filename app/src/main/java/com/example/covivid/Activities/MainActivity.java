@@ -2,20 +2,25 @@ package com.example.covivid.Activities;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.util.Pair;
 
+import com.example.covivid.Model.CovidReport.ComplexCovidReport;
 import com.example.covivid.Model.CovidReport.Country;
 import com.example.covivid.R;
 import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Utils.Common;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -24,6 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,12 +38,16 @@ import retrofit2.Response;
 //TODO: clean this mess
 public class MainActivity extends AppCompatActivity
 {
+    ConstraintLayout bottomSheetCovid;
+    BottomSheetBehavior<?> bottomSheetBehavior;
     TextInputLayout countriesInput;
     Button dateRangePicker;
     AutoCompleteTextView countryAutocomplete;
     Map<String, String> countries;
     MaterialDatePicker<Pair<Long, Long>> picker;
     ICovidAPI api;
+    String selectedCountry;
+    TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -51,19 +61,80 @@ public class MainActivity extends AppCompatActivity
 
     private void init()
     {
+        bottomSheetCovid = (ConstraintLayout)findViewById(R.id.covid_report_layout);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetCovid);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         countriesInput = findViewById(R.id.country_dropdown);
         countryAutocomplete = findViewById(R.id.country_autocomplete);
+        activeCasesTxt = findViewById(R.id.active_cases_no_txt);
+        recoveredTxt = findViewById(R.id.recovered_no_txt);
+        totalCasesTxt = findViewById(R.id.total_cases_no_txt);
+        deathsTxt = findViewById(R.id.deaths_no_txt);
         dateRangePicker = findViewById(R.id.date_range_picker);
         countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
             String key = parent.getItemAtPosition(position).toString();
-            String slug = countries.get(key);
+            selectedCountry = countries.get(key);
             hideKeyboard(view);
             dateRangePicker.setVisibility(View.VISIBLE);
-            Toast.makeText(MainActivity.this, slug, Toast.LENGTH_SHORT).show();
+        });
+        countryAutocomplete.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                dateRangePicker.setVisibility(View.INVISIBLE);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
         });
         initDateRangePicker();
         dateRangePicker.setOnClickListener(view -> picker.show(getSupportFragmentManager(), picker.toString()));
         api = Common.getApi();
+    }
+
+    private void loadStatisticsForCountry(Date from, Date to)
+    {
+        if(selectedCountry != null) {
+            Call<List<ComplexCovidReport>> call = api.getTotalByCountry(selectedCountry);
+            call.enqueue(new Callback<List<ComplexCovidReport>>() {
+                @Override
+                public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
+                    if(response.isSuccessful()) {
+                        List<ComplexCovidReport> reports = response.body();
+                        displayReport(reports, from, to);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
+
+                }
+            });
+        }
+    }
+
+    private void displayReport(List<ComplexCovidReport> reports, Date from, Date to)
+    {
+        int activeCases = 0;
+        int recovered = 0;
+        int totalCases = 0;
+        int deaths = 0;
+        List<ComplexCovidReport> matchedReports = reports.stream()
+                .filter(report -> report.getDate().equals(from) || report.getDate().equals(to))
+                .collect(Collectors.toList());
+        if(matchedReports.size() > 1) {
+            activeCases = Math.abs(matchedReports.get(0).getActive() - matchedReports.get(1).getActive());
+            recovered = Math.abs(matchedReports.get(0).getRecovered() - matchedReports.get(1).getRecovered());
+            totalCases = Math.abs(matchedReports.get(0).getConfirmed() - matchedReports.get(1).getConfirmed());
+            deaths = Math.abs(matchedReports.get(0).getDeaths() - matchedReports.get(1).getDeaths());
+        }
+        activeCasesTxt.setText(String.valueOf(activeCases));
+        recoveredTxt.setText(String.valueOf(recovered));
+        totalCasesTxt.setText(String.valueOf(totalCases));
+        deathsTxt.setText(String.valueOf(deaths));
     }
 
     private void initDateRangePicker()
@@ -75,9 +146,11 @@ public class MainActivity extends AppCompatActivity
                 .setTitleText("Wybierz daty");
         picker = builder.build();
         picker.addOnPositiveButtonClickListener(selection -> {
-            Date first = new Date(selection.first);
-            Date second = new Date(selection.second);
-            Toast.makeText(MainActivity.this, String.format("First date: %s, second date: %s", first.toString(), second.toString()), Toast.LENGTH_SHORT).show();
+            Date from = new Date(selection.first);
+            Date to = new Date(selection.second);
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            dateRangePicker.setVisibility(View.INVISIBLE);
+            loadStatisticsForCountry(from, to);
         });
     }
 
