@@ -57,9 +57,6 @@ enum CaseType
 
 public class MainActivity extends AppCompatActivity
 {
-    private static final String STAGE_COUNTRY_SELECTION = "country_selection";
-    private static final String STAGE_DATE_SELECTION = "date_selection";
-
     private BottomSheetBehavior<?> covidBottomSheetBehavior;
 
     private Button dateRangeButton;
@@ -67,7 +64,7 @@ public class MainActivity extends AppCompatActivity
     private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt, caseTypeTxt, yearTxt;
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
 
-    private LottieAnimationView noInternetConnectionAnim, statDetailsAnim;
+    private LottieAnimationView noInternetConnectionAnim;
     private AnimatedPieView pieChart;
 
     private Map<String, String> countries; // country_name : country_slug
@@ -114,7 +111,6 @@ public class MainActivity extends AppCompatActivity
         dateRangePicker.addOnPositiveButtonClickListener(selection -> {
             from = new Date(selection.first);
             to = new Date(selection.second);
-            covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             dateRangeButton.setVisibility(View.INVISIBLE);
             loadStatisticsForCountry(from, to);
         });
@@ -136,7 +132,6 @@ public class MainActivity extends AppCompatActivity
         dateRangeButton = findViewById(R.id.date_range_picker);
 
         noInternetConnectionAnim = findViewById(R.id.no_internet_anim);
-        statDetailsAnim = findViewById(R.id.chart_anim);
         pieChart = findViewById(R.id.animated_pie_chart);
 
         countryAutocomplete = findViewById(R.id.country_autocomplete);
@@ -172,8 +167,7 @@ public class MainActivity extends AppCompatActivity
                 if(t instanceof NoInternetConnectionException)
                 {
                     countryAutocomplete.setEnabled(false);
-                    playAnim(noInternetConnectionAnim, true);
-                    reportNetworkIssue(MainActivity.STAGE_COUNTRY_SELECTION);
+                    reportNetworkIssue();
                 }
             }
         });
@@ -209,8 +203,7 @@ public class MainActivity extends AppCompatActivity
             public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
                 if(t instanceof NoInternetConnectionException)
                 {
-                    playAnim(statDetailsAnim, true);
-                    reportNetworkIssue(MainActivity.STAGE_DATE_SELECTION);
+                    reportNetworkIssue();
                 }
             }
         });
@@ -238,6 +231,7 @@ public class MainActivity extends AppCompatActivity
         recoveredTxt.setText(String.valueOf(recovered));
         totalCasesTxt.setText(String.valueOf(totalCases));
         deathsTxt.setText(String.valueOf(deaths));
+        covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         displayChart(reports, from, CaseType.DEATHS);
     }
 
@@ -249,27 +243,18 @@ public class MainActivity extends AppCompatActivity
         inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
     }
 
-    private void reportNetworkIssue(final String onStage)
+    private void reportNetworkIssue()
     {
+        playAnim(noInternetConnectionAnim);
+        countryAutocomplete.setText("");
+        countryAutocomplete.setEnabled(false);
         Snackbar snackbar = Snackbar.make(countryAutocomplete, R.string.net_trouble_msg, Snackbar.LENGTH_INDEFINITE);
         snackbar
                 .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
                 .setAction(R.string.retry, view -> {
-                    if(onStage.equals(STAGE_COUNTRY_SELECTION)) {
                         loadCountries();
                         countryAutocomplete.setEnabled(true);
                         stopAnim(noInternetConnectionAnim);
-                    }
-                    else if(onStage.equals(STAGE_DATE_SELECTION)) {
-                        //add retry action for this stage
-                        statDetailsAnim.setVisibility(View.INVISIBLE);
-                        covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        countryAutocomplete.setText("");
-                        selectedCountrySlug = "";
-                        from = null;
-                        to = null;
-                        loadCountries();
-                    }
                 })
                 .setActionTextColor(Color.WHITE)
                 .show();
@@ -394,15 +379,9 @@ public class MainActivity extends AppCompatActivity
         return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
     }
 
-    private void playAnim(LottieAnimationView animation, boolean networkIssue)
+    private void playAnim(LottieAnimationView animation)
     {
         animation.setVisibility(View.VISIBLE);
-        if(networkIssue) {
-            animation.setAnimation(R.raw.no_internet_connection);
-        }
-        else {
-            animation.setAnimation(R.raw.spin_finity_loader);
-        }
         animation.playAnimation();
     }
 
