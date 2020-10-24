@@ -22,7 +22,6 @@ import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Utils.Common;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,10 +36,8 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity
 {
-    private ConstraintLayout bottomSheetCovid;
     private BottomSheetBehavior<?> covidBottomSheetBehavior;
 
-    private TextInputLayout countriesInput;
     private Button dateRangeButton;
     private AutoCompleteTextView countryAutocomplete;
     private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
@@ -97,7 +94,7 @@ public class MainActivity extends AppCompatActivity
 
     private void initViews()
     {
-        bottomSheetCovid = findViewById(R.id.covid_report_layout);
+        ConstraintLayout bottomSheetCovid = findViewById(R.id.covid_report_layout);
         covidBottomSheetBehavior = BottomSheetBehavior.from(bottomSheetCovid);
         covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
@@ -108,7 +105,6 @@ public class MainActivity extends AppCompatActivity
 
         dateRangeButton = findViewById(R.id.date_range_picker);
 
-        countriesInput = findViewById(R.id.country_dropdown);
         countryAutocomplete = findViewById(R.id.country_autocomplete);
 
         MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
@@ -117,7 +113,7 @@ public class MainActivity extends AppCompatActivity
                 .setSelection(
                         new Pair<>(MaterialDatePicker.todayInUtcMilliseconds(),
                                 MaterialDatePicker.todayInUtcMilliseconds()))
-                .setTitleText("Wybierz daty");
+                .setTitleText(R.string.date_range_picker_hint);
         dateRangePicker = builder.build();
     }
 
@@ -205,7 +201,9 @@ public class MainActivity extends AppCompatActivity
 
     private void hideKeyboard(View view)
     {
-        InputMethodManager inputMethodManager = (InputMethodManager)view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager inputMethodManager = (InputMethodManager)view
+                .getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
     }
 }
