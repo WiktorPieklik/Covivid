@@ -67,12 +67,13 @@ public class MainActivity extends AppCompatActivity
     private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt, caseTypeTxt, yearTxt;
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
 
-    private LottieAnimationView noInternetConnectionAnim;
+    private LottieAnimationView noInternetConnectionAnim, statDetailsAnim;
     private AnimatedPieView pieChart;
 
     private Map<String, String> countries; // country_name : country_slug
     private ICovidAPI covidAPI;
     private String selectedCountrySlug;
+    private Date from, to;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -111,8 +112,8 @@ public class MainActivity extends AppCompatActivity
         dateRangeButton.setOnClickListener(
                 view -> dateRangePicker.show(getSupportFragmentManager(), dateRangePicker.toString()));
         dateRangePicker.addOnPositiveButtonClickListener(selection -> {
-            Date from = new Date(selection.first);
-            Date to = new Date(selection.second);
+            from = new Date(selection.first);
+            to = new Date(selection.second);
             covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             dateRangeButton.setVisibility(View.INVISIBLE);
             loadStatisticsForCountry(from, to);
@@ -135,6 +136,7 @@ public class MainActivity extends AppCompatActivity
         dateRangeButton = findViewById(R.id.date_range_picker);
 
         noInternetConnectionAnim = findViewById(R.id.no_internet_anim);
+        statDetailsAnim = findViewById(R.id.chart_anim);
         pieChart = findViewById(R.id.animated_pie_chart);
 
         countryAutocomplete = findViewById(R.id.country_autocomplete);
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity
                 if(t instanceof NoInternetConnectionException)
                 {
                     countryAutocomplete.setEnabled(false);
-                    playAnim(noInternetConnectionAnim);
+                    playAnim(noInternetConnectionAnim, true);
                     reportNetworkIssue(MainActivity.STAGE_COUNTRY_SELECTION);
                 }
             }
@@ -193,26 +195,25 @@ public class MainActivity extends AppCompatActivity
 
     private void loadStatisticsForCountry(Date from, Date to)
     {
-        if(selectedCountrySlug != null) {
-            Call<List<ComplexCovidReport>> call = covidAPI.getTotalByCountry(selectedCountrySlug);
-            call.enqueue(new Callback<List<ComplexCovidReport>>() {
-                @Override
-                public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
-                    if(response.isSuccessful()) {
-                        List<ComplexCovidReport> reports = response.body();
-                        displayReport(reports, from, to);
-                    }
+        Call<List<ComplexCovidReport>> call = covidAPI.getTotalByCountry(selectedCountrySlug);
+        call.enqueue(new Callback<List<ComplexCovidReport>>() {
+            @Override
+            public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
+                if(response.isSuccessful()) {
+                    List<ComplexCovidReport> reports = response.body();
+                    displayReport(reports, from, to);
                 }
+            }
 
-                @Override
-                public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
-                    if(t instanceof NoInternetConnectionException)
-                    {
-                        reportNetworkIssue(MainActivity.STAGE_DATE_SELECTION);
-                    }
+            @Override
+            public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
+                if(t instanceof NoInternetConnectionException)
+                {
+                    playAnim(statDetailsAnim, true);
+                    reportNetworkIssue(MainActivity.STAGE_DATE_SELECTION);
                 }
-            });
-        }
+            }
+        });
     }
 
     private void displayReport(List<ComplexCovidReport> reports, Date from, Date to)
@@ -250,20 +251,24 @@ public class MainActivity extends AppCompatActivity
 
     private void reportNetworkIssue(final String onStage)
     {
-        if(onStage.equals(this.STAGE_DATE_SELECTION)) {
-            covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        }
         Snackbar snackbar = Snackbar.make(countryAutocomplete, R.string.net_trouble_msg, Snackbar.LENGTH_INDEFINITE);
         snackbar
                 .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
                 .setAction(R.string.retry, view -> {
-                    if(onStage.equals(this.STAGE_COUNTRY_SELECTION)) {
+                    if(onStage.equals(STAGE_COUNTRY_SELECTION)) {
                         loadCountries();
                         countryAutocomplete.setEnabled(true);
                         stopAnim(noInternetConnectionAnim);
                     }
-                    else if(onStage.equals(this.STAGE_DATE_SELECTION)) {
+                    else if(onStage.equals(STAGE_DATE_SELECTION)) {
                         //add retry action for this stage
+                        statDetailsAnim.setVisibility(View.INVISIBLE);
+                        covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        countryAutocomplete.setText("");
+                        selectedCountrySlug = "";
+                        from = null;
+                        to = null;
+                        loadCountries();
                     }
                 })
                 .setActionTextColor(Color.WHITE)
@@ -389,9 +394,15 @@ public class MainActivity extends AppCompatActivity
         return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
     }
 
-    private void playAnim(LottieAnimationView animation)
+    private void playAnim(LottieAnimationView animation, boolean networkIssue)
     {
         animation.setVisibility(View.VISIBLE);
+        if(networkIssue) {
+            animation.setAnimation(R.raw.no_internet_connection);
+        }
+        else {
+            animation.setAnimation(R.raw.spin_finity_loader);
+        }
         animation.playAnimation();
     }
 
@@ -400,6 +411,4 @@ public class MainActivity extends AppCompatActivity
         animation.pauseAnimation();
         animation.setVisibility(View.INVISIBLE);
     }
-
-
 }
