@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity
                 .floatShadowRadius(18f)
                 .floatUpDuration(500)
                 .floatDownDuration(500)
-                .floatExpandSize(20)
+                .floatExpandSize(16f)
                 .duration(800)
                 .startAngle(-90f)
                 .drawText(true)
