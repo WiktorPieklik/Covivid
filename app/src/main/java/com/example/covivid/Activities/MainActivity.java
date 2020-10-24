@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity
             public void onFailure(Call<List<Country>> call, Throwable t) {
                 if(t instanceof NoInternetConnectionException)
                 {
+                    countryAutocomplete.setEnabled(false);
                     reportNetworkIssue(MainActivity.STAGE_COUNTRY_SELECTION);
                 }
             }
@@ -230,6 +231,7 @@ public class MainActivity extends AppCompatActivity
                 .setAction(R.string.retry, view -> {
                     if(onStage.equals(this.STAGE_COUNTRY_SELECTION)) {
                         loadCountries();
+                        countryAutocomplete.setEnabled(true);
                     }
                     else if(onStage.equals(this.STAGE_DATE_SELECTION)) {
                         //add retry action for this stage
