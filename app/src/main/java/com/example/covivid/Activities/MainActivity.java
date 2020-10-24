@@ -6,11 +6,13 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -26,17 +28,32 @@ import com.example.covivid.Utils.Common;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.snackbar.Snackbar;
+import com.razerdp.widget.animatedpieview.AnimatedPieView;
+import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;
+import com.razerdp.widget.animatedpieview.data.SimplePieInfo;
 
+import java.text.DateFormatSymbols;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+enum CaseType
+{
+    ACTIVE_CASES,
+    RECOVERED,
+    TOTAL_CASES,
+    DEATHS,
+}
 
 public class MainActivity extends AppCompatActivity
 {
@@ -51,6 +68,7 @@ public class MainActivity extends AppCompatActivity
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
 
     private LottieAnimationView noInternetConnectionAnim;
+    private AnimatedPieView pieChart;
 
     private Map<String, String> countries; // country_name : country_slug
     private ICovidAPI covidAPI;
@@ -115,6 +133,7 @@ public class MainActivity extends AppCompatActivity
         dateRangeButton = findViewById(R.id.date_range_picker);
 
         noInternetConnectionAnim = findViewById(R.id.no_internet_anim);
+        pieChart = findViewById(R.id.animated_pie_chart);
 
         countryAutocomplete = findViewById(R.id.country_autocomplete);
 
@@ -216,6 +235,7 @@ public class MainActivity extends AppCompatActivity
         recoveredTxt.setText(String.valueOf(recovered));
         totalCasesTxt.setText(String.valueOf(totalCases));
         deathsTxt.setText(String.valueOf(deaths));
+        displayChart(reports, from, CaseType.DEATHS);
     }
 
     private void hideKeyboard(View view)
@@ -246,6 +266,109 @@ public class MainActivity extends AppCompatActivity
                 })
                 .setActionTextColor(Color.WHITE)
                 .show();
+    }
+
+    private void displayChart(List<ComplexCovidReport> reports, Date date, CaseType caseType)
+    {
+        pieChart.refreshDrawableState();
+        AnimatedPieViewConfig config = new AnimatedPieViewConfig();
+        addChartData(config, reports, date, caseType);
+        config
+                .animOnTouch(true)
+                .floatExpandAngle(15f)
+                .strokeMode(false)
+                .floatShadowRadius(18f)
+                .floatUpDuration(500)
+                .floatDownDuration(500)
+                .floatExpandSize(20)
+                .duration(800)
+                .startAngle(-90f)
+                .drawText(true)
+                .textSize(24)
+                .autoSize(true)
+                .canTouch(true)
+                .focusAlpha(150)
+                .focusAlphaType(AnimatedPieViewConfig.FOCUS_WITH_ALPHA_REV)
+                .interpolator(new DecelerateInterpolator())
+                .selectListener(
+                        (pieInfo, isFloatUp) -> Toast.makeText(MainActivity.this, String.valueOf((int)pieInfo.getValue()), Toast.LENGTH_SHORT).show());
+        pieChart.start(config);
+    }
+
+    private void addChartData(
+            AnimatedPieViewConfig config,
+            List<ComplexCovidReport> reports,
+            Date date,
+            CaseType caseType)
+    {
+        List<ComplexCovidReport> reportsWithinYear = reports
+                .stream()
+                .filter(report -> getYearNumber(date) == getYearNumber(report.getDate()))
+                .collect(Collectors.toList());
+        for(int i = 0; i < 12; ++i) {
+            int monthStats = getStatsCountForMonth(reportsWithinYear, i+1, caseType);
+            String monthName = (new DateFormatSymbols()).getMonths()[i];
+            config.addData(new SimplePieInfo(monthStats, getRandomColor(), monthName));
+        }
+    }
+
+    private int getStatsCountForMonth(List<ComplexCovidReport> reports, int month, CaseType caseType)
+    {
+        int stats = 0;
+        List<ComplexCovidReport> reportsWithinMonth = reports
+                .stream()
+                .filter(report -> month == getMonthNumber(report.getDate()))
+                .sorted((report1, report2) -> Integer.compare(getDayNumber(report1.getDate()), getDayNumber(report2.getDate())))
+                .collect(Collectors.toList());
+
+        if(reportsWithinMonth.size() > 1) {
+            ComplexCovidReport firstReport = reportsWithinMonth.get(0);
+            ComplexCovidReport lastReport = reportsWithinMonth.get(reportsWithinMonth.size() - 1);
+            switch (caseType) {
+                case ACTIVE_CASES:
+                    stats = Math.abs(firstReport.getActive() - lastReport.getActive());
+                    break;
+                case RECOVERED:
+                    stats = Math.abs(firstReport.getRecovered() - lastReport.getRecovered());
+                    break;
+                case TOTAL_CASES:
+                    stats = Math.abs(firstReport.getConfirmed() - lastReport.getConfirmed());
+                    break;
+                case DEATHS:
+                    stats = Math.abs(firstReport.getDeaths() - lastReport.getDeaths());
+                    break;
+            }
+        }
+
+        return stats;
+    }
+
+    private int getDayNumber(Date date)
+    {
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return localDate.getDayOfMonth();
+    }
+
+    private int getMonthNumber(Date date)
+    {
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return localDate.getMonthValue();
+    }
+
+    private int getYearNumber(Date date)
+    {
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return localDate.getYear();
+    }
+
+    private int getRandomColor()
+    {
+        Random random = new Random();
+
+        return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
     }
 
     private void playAnim(LottieAnimationView animation)
