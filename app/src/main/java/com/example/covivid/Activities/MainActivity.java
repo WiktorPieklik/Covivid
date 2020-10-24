@@ -35,19 +35,20 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-//TODO: clean this mess
 public class MainActivity extends AppCompatActivity
 {
-    ConstraintLayout bottomSheetCovid;
-    BottomSheetBehavior<?> bottomSheetBehavior;
-    TextInputLayout countriesInput;
-    Button dateRangePicker;
-    AutoCompleteTextView countryAutocomplete;
-    Map<String, String> countries;
-    MaterialDatePicker<Pair<Long, Long>> picker;
-    ICovidAPI api;
-    String selectedCountry;
-    TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
+    private ConstraintLayout bottomSheetCovid;
+    private BottomSheetBehavior<?> covidBottomSheetBehavior;
+
+    private TextInputLayout countriesInput;
+    private Button dateRangeButton;
+    private AutoCompleteTextView countryAutocomplete;
+    private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
+    private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
+
+    private Map<String, String> countries; // country_name : country_slug
+    private ICovidAPI covidAPI;
+    private String selectedCountrySlug;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -61,27 +62,19 @@ public class MainActivity extends AppCompatActivity
 
     private void init()
     {
-        bottomSheetCovid = (ConstraintLayout)findViewById(R.id.covid_report_layout);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetCovid);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        countriesInput = findViewById(R.id.country_dropdown);
-        countryAutocomplete = findViewById(R.id.country_autocomplete);
-        activeCasesTxt = findViewById(R.id.active_cases_no_txt);
-        recoveredTxt = findViewById(R.id.recovered_no_txt);
-        totalCasesTxt = findViewById(R.id.total_cases_no_txt);
-        deathsTxt = findViewById(R.id.deaths_no_txt);
-        dateRangePicker = findViewById(R.id.date_range_picker);
+        initViews();
+        covidAPI = Common.getCovidAPI();
         countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
             String key = parent.getItemAtPosition(position).toString();
-            selectedCountry = countries.get(key);
+            selectedCountrySlug = countries.get(key);
             hideKeyboard(view);
-            dateRangePicker.setVisibility(View.VISIBLE);
+            dateRangeButton.setVisibility(View.VISIBLE);
         });
         countryAutocomplete.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                dateRangePicker.setVisibility(View.INVISIBLE);
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                dateRangeButton.setVisibility(View.INVISIBLE);
+                covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
 
             @Override
@@ -90,79 +83,47 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void afterTextChanged(Editable s) { }
         });
-        initDateRangePicker();
-        dateRangePicker.setOnClickListener(view -> picker.show(getSupportFragmentManager(), picker.toString()));
-        api = Common.getApi();
-    }
 
-    private void loadStatisticsForCountry(Date from, Date to)
-    {
-        if(selectedCountry != null) {
-            Call<List<ComplexCovidReport>> call = api.getTotalByCountry(selectedCountry);
-            call.enqueue(new Callback<List<ComplexCovidReport>>() {
-                @Override
-                public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
-                    if(response.isSuccessful()) {
-                        List<ComplexCovidReport> reports = response.body();
-                        displayReport(reports, from, to);
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
-
-                }
-            });
-        }
-    }
-
-    private void displayReport(List<ComplexCovidReport> reports, Date from, Date to)
-    {
-        int activeCases = 0;
-        int recovered = 0;
-        int totalCases = 0;
-        int deaths = 0;
-        List<ComplexCovidReport> matchedReports = reports.stream()
-                .filter(report -> report.getDate().equals(from) || report.getDate().equals(to))
-                .collect(Collectors.toList());
-        if(matchedReports.size() > 1) {
-            activeCases = Math.abs(matchedReports.get(0).getActive() - matchedReports.get(1).getActive());
-            recovered = Math.abs(matchedReports.get(0).getRecovered() - matchedReports.get(1).getRecovered());
-            totalCases = Math.abs(matchedReports.get(0).getConfirmed() - matchedReports.get(1).getConfirmed());
-            deaths = Math.abs(matchedReports.get(0).getDeaths() - matchedReports.get(1).getDeaths());
-        }
-        activeCasesTxt.setText(String.valueOf(activeCases));
-        recoveredTxt.setText(String.valueOf(recovered));
-        totalCasesTxt.setText(String.valueOf(totalCases));
-        deathsTxt.setText(String.valueOf(deaths));
-    }
-
-    private void initDateRangePicker()
-    {
-        MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
-        builder
-                .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
-                .setSelection(new Pair<>(MaterialDatePicker.todayInUtcMilliseconds(), MaterialDatePicker.todayInUtcMilliseconds()))
-                .setTitleText("Wybierz daty");
-        picker = builder.build();
-        picker.addOnPositiveButtonClickListener(selection -> {
+        dateRangeButton.setOnClickListener(
+                view -> dateRangePicker.show(getSupportFragmentManager(), dateRangePicker.toString()));
+        dateRangePicker.addOnPositiveButtonClickListener(selection -> {
             Date from = new Date(selection.first);
             Date to = new Date(selection.second);
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            dateRangePicker.setVisibility(View.INVISIBLE);
+            covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            dateRangeButton.setVisibility(View.INVISIBLE);
             loadStatisticsForCountry(from, to);
         });
     }
 
-    private void hideKeyboard(View view)
+    private void initViews()
     {
-        InputMethodManager inputMethodManager = (InputMethodManager)view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+        bottomSheetCovid = findViewById(R.id.covid_report_layout);
+        covidBottomSheetBehavior = BottomSheetBehavior.from(bottomSheetCovid);
+        covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+        activeCasesTxt = findViewById(R.id.active_cases_no_txt);
+        recoveredTxt = findViewById(R.id.recovered_no_txt);
+        totalCasesTxt = findViewById(R.id.total_cases_no_txt);
+        deathsTxt = findViewById(R.id.deaths_no_txt);
+
+        dateRangeButton = findViewById(R.id.date_range_picker);
+
+        countriesInput = findViewById(R.id.country_dropdown);
+        countryAutocomplete = findViewById(R.id.country_autocomplete);
+
+        MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
+        builder
+                .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+                .setSelection(
+                        new Pair<>(MaterialDatePicker.todayInUtcMilliseconds(),
+                                MaterialDatePicker.todayInUtcMilliseconds()))
+                .setTitleText("Wybierz daty");
+        dateRangePicker = builder.build();
     }
 
     private void loadCountries()
     {
-        Call<List<Country>> call = api.getCountries();
+        Call<List<Country>> call = covidAPI.getCountries();
         call.enqueue(new Callback<List<Country>>() {
             @Override
             public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
@@ -195,5 +156,56 @@ public class MainActivity extends AppCompatActivity
                 countriesNames
         );
         countryAutocomplete.setAdapter(countryAdapter);
+    }
+
+    private void loadStatisticsForCountry(Date from, Date to)
+    {
+        if(selectedCountrySlug != null) {
+            Call<List<ComplexCovidReport>> call = covidAPI.getTotalByCountry(selectedCountrySlug);
+            call.enqueue(new Callback<List<ComplexCovidReport>>() {
+                @Override
+                public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
+                    if(response.isSuccessful()) {
+                        List<ComplexCovidReport> reports = response.body();
+                        displayReport(reports, from, to);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
+
+                }
+            });
+        }
+    }
+
+    private void displayReport(List<ComplexCovidReport> reports, Date from, Date to)
+    {
+        int activeCases = 0, recovered = 0, totalCases = 0, deaths =0;
+        List<ComplexCovidReport> matchedReports = reports
+                .stream()
+                .filter(report -> report.getDate().equals(from) || report.getDate().equals(to))
+                .collect(Collectors.toList());
+
+        if(matchedReports.size() > 1) {
+            activeCases = Math.abs(
+                    matchedReports.get(0).getActive() - matchedReports.get(1).getActive());
+            recovered = Math.abs(
+                    matchedReports.get(0).getRecovered() - matchedReports.get(1).getRecovered());
+            totalCases = Math.abs(
+                    matchedReports.get(0).getConfirmed() - matchedReports.get(1).getConfirmed());
+            deaths = Math.abs(
+                    matchedReports.get(0).getDeaths() - matchedReports.get(1).getDeaths());
+        }
+        activeCasesTxt.setText(String.valueOf(activeCases));
+        recoveredTxt.setText(String.valueOf(recovered));
+        totalCasesTxt.setText(String.valueOf(totalCases));
+        deathsTxt.setText(String.valueOf(deaths));
+    }
+
+    private void hideKeyboard(View view)
+    {
+        InputMethodManager inputMethodManager = (InputMethodManager)view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
     }
 }

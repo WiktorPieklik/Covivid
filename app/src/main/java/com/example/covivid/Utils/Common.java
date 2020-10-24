@@ -29,7 +29,7 @@ public class Common
         activity.getSupportActionBar().hide();
     }
 
-    public static ICovidAPI getApi()
+    public static ICovidAPI getCovidAPI()
     {
         return RetrofitClient
                 .getClient(BASE_URL)
