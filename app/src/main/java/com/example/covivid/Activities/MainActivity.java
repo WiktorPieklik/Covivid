@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.util.Pair;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.covivid.Model.CovidReport.ComplexCovidReport;
 import com.example.covivid.Model.CovidReport.Country;
 import com.example.covivid.R;
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity
     private AutoCompleteTextView countryAutocomplete;
     private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
+
+    private LottieAnimationView noInternetConnectionAnim;
 
     private Map<String, String> countries; // country_name : country_slug
     private ICovidAPI covidAPI;
@@ -111,6 +114,8 @@ public class MainActivity extends AppCompatActivity
 
         dateRangeButton = findViewById(R.id.date_range_picker);
 
+        noInternetConnectionAnim = findViewById(R.id.no_internet_anim);
+
         countryAutocomplete = findViewById(R.id.country_autocomplete);
 
         MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
@@ -144,6 +149,7 @@ public class MainActivity extends AppCompatActivity
                 if(t instanceof NoInternetConnectionException)
                 {
                     countryAutocomplete.setEnabled(false);
+                    playAnim(noInternetConnectionAnim);
                     reportNetworkIssue(MainActivity.STAGE_COUNTRY_SELECTION);
                 }
             }
@@ -232,6 +238,7 @@ public class MainActivity extends AppCompatActivity
                     if(onStage.equals(this.STAGE_COUNTRY_SELECTION)) {
                         loadCountries();
                         countryAutocomplete.setEnabled(true);
+                        stopAnim(noInternetConnectionAnim);
                     }
                     else if(onStage.equals(this.STAGE_DATE_SELECTION)) {
                         //add retry action for this stage
@@ -240,4 +247,18 @@ public class MainActivity extends AppCompatActivity
                 .setActionTextColor(Color.WHITE)
                 .show();
     }
+
+    private void playAnim(LottieAnimationView animation)
+    {
+        animation.setVisibility(View.VISIBLE);
+        animation.playAnimation();
+    }
+
+    private void stopAnim(LottieAnimationView animation)
+    {
+        animation.pauseAnimation();
+        animation.setVisibility(View.INVISIBLE);
+    }
+
+
 }
