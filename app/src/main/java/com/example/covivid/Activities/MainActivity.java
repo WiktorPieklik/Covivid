@@ -1,6 +1,7 @@
 package com.example.covivid.Activities;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -18,10 +19,12 @@ import androidx.core.util.Pair;
 import com.example.covivid.Model.CovidReport.ComplexCovidReport;
 import com.example.covivid.Model.CovidReport.Country;
 import com.example.covivid.R;
+import com.example.covivid.Retrofit.Exceptions.NoInternetConnectionException;
 import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Utils.Common;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +39,9 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity
 {
+    private static final String STAGE_COUNTRY_SELECTION = "country_selection";
+    private static final String STAGE_DATE_SELECTION = "date_selection";
+
     private BottomSheetBehavior<?> covidBottomSheetBehavior;
 
     private Button dateRangeButton;
@@ -60,7 +66,7 @@ public class MainActivity extends AppCompatActivity
     private void init()
     {
         initViews();
-        covidAPI = Common.getCovidAPI();
+        covidAPI = Common.getCovidAPI(this);
         countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
             String key = parent.getItemAtPosition(position).toString();
             selectedCountrySlug = countries.get(key);
@@ -135,7 +141,10 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onFailure(Call<List<Country>> call, Throwable t) {
-
+                if(t instanceof NoInternetConnectionException)
+                {
+                    reportNetworkIssue(MainActivity.STAGE_COUNTRY_SELECTION);
+                }
             }
         });
     }
@@ -169,7 +178,10 @@ public class MainActivity extends AppCompatActivity
 
                 @Override
                 public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
-
+                    if(t instanceof NoInternetConnectionException)
+                    {
+                        reportNetworkIssue(MainActivity.STAGE_DATE_SELECTION);
+                    }
                 }
             });
         }
@@ -205,5 +217,25 @@ public class MainActivity extends AppCompatActivity
                 .getContext()
                 .getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+    }
+
+    private void reportNetworkIssue(final String onStage)
+    {
+        if(onStage.equals(this.STAGE_DATE_SELECTION)) {
+            covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        }
+        Snackbar snackbar = Snackbar.make(countryAutocomplete, R.string.net_trouble_msg, Snackbar.LENGTH_INDEFINITE);
+        snackbar
+                .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
+                .setAction(R.string.retry, view -> {
+                    if(onStage.equals(this.STAGE_COUNTRY_SELECTION)) {
+                        loadCountries();
+                    }
+                    else if(onStage.equals(this.STAGE_DATE_SELECTION)) {
+                        //add retry action for this stage
+                    }
+                })
+                .setActionTextColor(Color.WHITE)
+                .show();
     }
 }
