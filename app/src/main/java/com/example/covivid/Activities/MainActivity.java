@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity
 
     private Button dateRangeButton;
     private AutoCompleteTextView countryAutocomplete;
-    private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
+    private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt, caseTypeTxt, yearTxt;
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
 
     private LottieAnimationView noInternetConnectionAnim;
@@ -129,6 +129,8 @@ public class MainActivity extends AppCompatActivity
         recoveredTxt = findViewById(R.id.recovered_no_txt);
         totalCasesTxt = findViewById(R.id.total_cases_no_txt);
         deathsTxt = findViewById(R.id.deaths_no_txt);
+        caseTypeTxt = findViewById(R.id.case_type_txt);
+        yearTxt = findViewById(R.id.year_txt);
 
         dateRangeButton = findViewById(R.id.date_range_picker);
 
@@ -270,6 +272,22 @@ public class MainActivity extends AppCompatActivity
 
     private void displayChart(List<ComplexCovidReport> reports, Date date, CaseType caseType)
     {
+        yearTxt.setText(String.valueOf(getYearNumber(date)));
+        switch(caseType)
+        {
+            case ACTIVE_CASES:
+                caseTypeTxt.setText(R.string.active_cases);
+                break;
+            case RECOVERED:
+                caseTypeTxt.setText(R.string.recovered);
+                break;
+            case TOTAL_CASES:
+                caseTypeTxt.setText(R.string.total_cases);
+                break;
+            case DEATHS:
+                caseTypeTxt.setText(R.string.deaths);
+                break;
+        }
         pieChart.refreshDrawableState();
         AnimatedPieViewConfig config = new AnimatedPieViewConfig();
         addChartData(config, reports, date, caseType);
