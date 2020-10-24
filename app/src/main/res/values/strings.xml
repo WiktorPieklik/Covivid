@@ -1,12 +1,9 @@
 <resources>
     <string name="app_name">Covivid</string>
-    <string name="cases">Przypadki</string>
-    <string name="total_cases">Wszystkie przypadki</string>
-    <string name="status">Status</string>
-    <string name="latitude">Szerokość geograficzna</string>
-    <string name="longitude">Długość geograficzna</string>
-    <string name="date">Data</string>
-    <string name="country">Kraj</string>
+    <string name="active_cases">Active cases</string>
+    <string name="recovered">Recovered</string>
+    <string name="total_cases">Total cases</string>
+    <string name="deaths">Deaths</string>
     <string name="country_picker_hint">Choose country</string>
     <string name="choose_date_range">Pick date range</string>
     <string name="date_range_picker_hint">Choose date range</string>
