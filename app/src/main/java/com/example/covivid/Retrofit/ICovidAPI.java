@@ -1,9 +1,9 @@
 package com.example.covivid.Retrofit;
 
-import com.example.covivid.Model.BaseCovidReport;
-import com.example.covivid.Model.ComplexCovidReport;
-import com.example.covivid.Model.Country;
-import com.example.covivid.Model.WorldCovidReport;
+import com.example.covivid.Model.CovidReport.BaseCovidReport;
+import com.example.covivid.Model.CovidReport.ComplexCovidReport;
+import com.example.covivid.Model.CovidReport.Country;
+import com.example.covivid.Model.CovidReport.WorldCovidReport;
 
 import java.util.List;
 

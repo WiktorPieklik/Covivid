@@ -1,11 +1,12 @@
 package com.example.covivid.Utils;
 
+import android.content.Context;
 import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.covivid.Model.BaseCovidReport;
+import com.example.covivid.Model.CovidReport.BaseCovidReport;
 import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Retrofit.RetrofitClient;
 
@@ -29,10 +30,10 @@ public class Common
         activity.getSupportActionBar().hide();
     }
 
-    public static ICovidAPI getApi()
+    public static ICovidAPI getCovidAPI(Context context)
     {
         return RetrofitClient
-                .getClient(BASE_URL)
+                .getClient(context, BASE_URL)
                 .create(ICovidAPI.class);
     }
 }
