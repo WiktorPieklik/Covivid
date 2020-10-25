@@ -320,10 +320,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private int getStatsCountForMonth(List<ComplexCovidReport> reports, int month, CaseType caseType)
+    private int getStatsCountForMonth(List<ComplexCovidReport> reportsWithinYear, int month, CaseType caseType)
     {
         int stats = 0;
-        List<ComplexCovidReport> reportsWithinMonth = reports
+        List<ComplexCovidReport> reportsWithinMonth = reportsWithinYear
                 .stream()
                 .filter(report -> month == getMonthNumber(report.getDate()))
                 .sorted((report1, report2) -> Integer.compare(getDayNumber(report1.getDate()), getDayNumber(report2.getDate())))
