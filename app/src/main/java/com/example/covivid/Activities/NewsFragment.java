@@ -1,8 +1,13 @@
 package com.example.covivid.Activities;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,21 +24,29 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class NewsActivity extends AppCompatActivity {
+public class NewsFragment extends Fragment {
 
     private ITheGuardianAPI theGuardianApi;
     private NewsAdapter adapter;
     private RecyclerView recycler;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Common.requestFullScreenActivity(this);
-        setContentView(R.layout.activity_news);
-        recycler = findViewById(R.id.news_rv);
-        theGuardianApi = Common.getNewsApi(this);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_news, container, false);
+        recycler = rootView.findViewById(R.id.news_rv);
+
+        return rootView;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        Bundle args = getArguments();
+        theGuardianApi = Common.getNewsApi(getActivity());
         getNews();
     }
+
 
 
     private void getNews()
@@ -59,8 +72,8 @@ public class NewsActivity extends AppCompatActivity {
 
     private void displayNews(List<News> news)
     {
-        recycler.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new NewsAdapter(this, news);
+        recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
+        adapter = new NewsAdapter(getActivity(), news);
         recycler.setAdapter(adapter);
     }
 }
