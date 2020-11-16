@@ -1,4 +1,4 @@
-package com.example.covivid.Activities;
+package com.example.covivid.Fragments;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -12,18 +12,19 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.example.covivid.Adapters.Reports.ChartFragmentsAdapter;
 import com.example.covivid.Model.CovidReport.ComplexCovidReport;
 import com.example.covivid.Model.CovidReport.Country;
 import com.example.covivid.R;
@@ -33,48 +34,44 @@ import com.example.covivid.Utils.Common;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.snackbar.Snackbar;
-import com.razerdp.widget.animatedpieview.AnimatedPieView;
-import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;
-import com.razerdp.widget.animatedpieview.data.SimplePieInfo;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
-import java.text.DateFormatSymbols;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-enum CaseType
-{
-    ACTIVE_CASES,
-    RECOVERED,
-    TOTAL_CASES,
-    DEATHS,
-}
+
+import static com.example.covivid.Fragments.CaseType.*;
 
 public class CountryFragment extends Fragment {
 
     private BottomSheetBehavior<?> covidBottomSheetBehavior;
 
-    private Button dateRangeButton;
+    private ImageButton dateRangeButton;
     private AutoCompleteTextView countryAutocomplete;
     private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt, caseTypeTxt, yearTxt;
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
 
     private LottieAnimationView noInternetConnectionAnim;
-    private AnimatedPieView pieChart;
 
     private Map<String, String> countries; // country_name : country_slug
     private ICovidAPI covidAPI;
     private String selectedCountrySlug;
     private Date from, to;
+    private TabLayout chartsTabLayout;
+    private ViewPager2 chartsViewPager;
+    private ChartFragmentsAdapter chartAdapter;
+    private final List<ChartFragment> fragments = new ArrayList<ChartFragment>(Arrays.asList(new ChartFragment(DEATHS,1), new ChartFragment(DEATHS,2), new ChartFragment(DEATHS,3)));
 
     @Nullable
     @Override
@@ -93,20 +90,24 @@ public class CountryFragment extends Fragment {
 
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        covidAPI = Common.getCovidAPI(context);
+    }
+
     private void init(View rootView)
         {
             initViews(rootView);
-            covidAPI = Common.getCovidAPI(getActivity());
             countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
                 String key = parent.getItemAtPosition(position).toString();
                 selectedCountrySlug = countries.get(key);
                 hideKeyboard(view);
-                dateRangeButton.setVisibility(View.VISIBLE);
+                loadStatisticsForCountry(from, to);
             });
             countryAutocomplete.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    dateRangeButton.setVisibility(View.INVISIBLE);
                     covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 }
 
@@ -122,9 +123,41 @@ public class CountryFragment extends Fragment {
             dateRangePicker.addOnPositiveButtonClickListener(selection -> {
                 from = new Date(selection.first);
                 to = new Date(selection.second);
-                dateRangeButton.setVisibility(View.INVISIBLE);
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(to);
+                calendar.add(Calendar.DAY_OF_MONTH, -1);
+                to = calendar.getTime();
                 loadStatisticsForCountry(from, to);
             });
+            Calendar calendar = Calendar.getInstance();
+            to = calendar.getTime();
+            calendar.setTime(to);
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
+            to = calendar.getTime();
+            calendar.add(Calendar.MONTH, -3);
+            from = calendar.getTime();
+            chartAdapter = new ChartFragmentsAdapter(this, fragments);
+            chartsViewPager.setAdapter(chartAdapter);
+            new TabLayoutMediator(chartsTabLayout, chartsViewPager,
+                    (tab, position) -> {
+                        switch (fragments.get(position).getCaseType())
+                        {
+                            case DEATHS:
+                                tab.setText(R.string.deaths);
+                                break;
+                            case RECOVERED:
+                                tab.setText(R.string.recovered);
+                                break;
+                            case TOTAL_CASES:
+                                tab.setText(R.string.total_cases);
+                                break;
+                            case ACTIVE_CASES:
+                                tab.setText(R.string.active_cases);
+                                break;
+                        }
+            }
+            ).attach();
+
         }
 
         private void initViews(View rootView)
@@ -143,9 +176,11 @@ public class CountryFragment extends Fragment {
             dateRangeButton = rootView.findViewById(R.id.date_range_picker);
 
             noInternetConnectionAnim = rootView.findViewById(R.id.no_internet_anim);
-            pieChart = rootView.findViewById(R.id.animated_pie_chart);
 
             countryAutocomplete = rootView.findViewById(R.id.country_autocomplete);
+
+            chartsTabLayout = rootView.findViewById(R.id.chart_tabs);
+            chartsViewPager = rootView.findViewById(R.id.charts_view_pager);
 
             MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
             builder
@@ -207,6 +242,9 @@ public class CountryFragment extends Fragment {
                     if(response.isSuccessful()) {
                         List<ComplexCovidReport> reports = response.body();
                         displayReport(reports, from, to);
+                        for (ChartFragment fragment : fragments) {
+                            fragment.updateChartData(reports, from);
+                        }
                     }
                 }
 
@@ -243,7 +281,6 @@ public class CountryFragment extends Fragment {
             totalCasesTxt.setText(String.valueOf(totalCases));
             deathsTxt.setText(String.valueOf(deaths));
             covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            displayChart(reports, from, com.example.covivid.Activities.CaseType.DEATHS);
         }
 
         private void hideKeyboard(View view)
@@ -269,125 +306,6 @@ public class CountryFragment extends Fragment {
                     })
                     .setActionTextColor(Color.WHITE)
                     .show();
-        }
-
-        private void displayChart(List<ComplexCovidReport> reports, Date date, com.example.covivid.Activities.CaseType caseType)
-        {
-            yearTxt.setText(String.valueOf(getYearNumber(date)));
-            switch(caseType)
-            {
-                case ACTIVE_CASES:
-                    caseTypeTxt.setText(R.string.active_cases);
-                    break;
-                case RECOVERED:
-                    caseTypeTxt.setText(R.string.recovered);
-                    break;
-                case TOTAL_CASES:
-                    caseTypeTxt.setText(R.string.total_cases);
-                    break;
-                case DEATHS:
-                    caseTypeTxt.setText(R.string.deaths);
-                    break;
-            }
-            pieChart.refreshDrawableState();
-            AnimatedPieViewConfig config = new AnimatedPieViewConfig();
-            addChartData(config, reports, date, caseType);
-            config
-                    .animOnTouch(true)
-                    .floatExpandAngle(15f)
-                    .strokeMode(false)
-                    .floatShadowRadius(18f)
-                    .floatUpDuration(500)
-                    .floatDownDuration(500)
-                    .floatExpandSize(16f)
-                    .duration(800)
-                    .startAngle(-90f)
-                    .drawText(true)
-                    .textSize(24)
-                    .autoSize(true)
-                    .canTouch(true)
-                    .focusAlpha(150)
-                    .focusAlphaType(AnimatedPieViewConfig.FOCUS_WITH_ALPHA_REV)
-                    .interpolator(new DecelerateInterpolator())
-                    .selectListener(
-                            (pieInfo, isFloatUp) -> Toast.makeText(getActivity(), String.valueOf((int)pieInfo.getValue()), Toast.LENGTH_SHORT).show());
-            pieChart.start(config);
-        }
-
-        private void addChartData(
-                AnimatedPieViewConfig config,
-                List<ComplexCovidReport> reports,
-                Date date,
-                com.example.covivid.Activities.CaseType caseType)
-        {
-            List<ComplexCovidReport> reportsWithinYear = reports
-                    .stream()
-                    .filter(report -> getYearNumber(date) == getYearNumber(report.getDate()))
-                    .collect(Collectors.toList());
-            for(int i = 0; i < 12; ++i) {
-                int monthStats = getStatsCountForMonth(reportsWithinYear, i+1, caseType);
-                String monthName = (new DateFormatSymbols()).getMonths()[i];
-                config.addData(new SimplePieInfo(monthStats, getRandomColor(), monthName));
-            }
-        }
-
-        private int getStatsCountForMonth(List<ComplexCovidReport> reportsWithinYear, int month, com.example.covivid.Activities.CaseType caseType)
-        {
-            int stats = 0;
-            List<ComplexCovidReport> reportsWithinMonth = reportsWithinYear
-                    .stream()
-                    .filter(report -> month == getMonthNumber(report.getDate()))
-                    .sorted((report1, report2) -> Integer.compare(getDayNumber(report1.getDate()), getDayNumber(report2.getDate())))
-                    .collect(Collectors.toList());
-
-            if(reportsWithinMonth.size() > 1) {
-                ComplexCovidReport firstReport = reportsWithinMonth.get(0);
-                ComplexCovidReport lastReport = reportsWithinMonth.get(reportsWithinMonth.size() - 1);
-                switch (caseType) {
-                    case ACTIVE_CASES:
-                        stats = Math.abs(firstReport.getActive() - lastReport.getActive());
-                        break;
-                    case RECOVERED:
-                        stats = Math.abs(firstReport.getRecovered() - lastReport.getRecovered());
-                        break;
-                    case TOTAL_CASES:
-                        stats = Math.abs(firstReport.getConfirmed() - lastReport.getConfirmed());
-                        break;
-                    case DEATHS:
-                        stats = Math.abs(firstReport.getDeaths() - lastReport.getDeaths());
-                        break;
-                }
-            }
-
-            return stats;
-        }
-
-        private int getDayNumber(Date date)
-        {
-            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-            return localDate.getDayOfMonth();
-        }
-
-        private int getMonthNumber(Date date)
-        {
-            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-            return localDate.getMonthValue();
-        }
-
-        private int getYearNumber(Date date)
-        {
-            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-            return localDate.getYear();
-        }
-
-        private int getRandomColor()
-        {
-            Random random = new Random();
-
-            return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
         }
 
         private void playAnim(LottieAnimationView animation)

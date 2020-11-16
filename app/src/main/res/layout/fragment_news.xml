@@ -4,8 +4,22 @@ xmlns:app="http://schemas.android.com/apk/res-auto"
 xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-tools:context=".Activities.NewsFragment"
+tools:context=".Fragments.NewsFragment"
 android:background="#fff">
+
+    <TextView
+        android:id="@+id/no_news_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:visibility="invisible"
+        android:text="@string/no_news"
+        android:textSize="24sp"
+        android:textColor="#000"
+        app:layout_constraintBottom_toBottomOf="@+id/news_rv"
+        app:layout_constraintEnd_toEndOf="@+id/news_rv"
+        app:layout_constraintStart_toStartOf="@+id/news_rv"
+        app:layout_constraintTop_toTopOf="parent" />
 
 <androidx.recyclerview.widget.RecyclerView
     android:id="@+id/news_rv"

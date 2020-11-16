@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         Common.requestFullScreenActivity(this);
         setContentView(R.layout.activity_main);
-        fragmentsAdapter = new MainFragmentsAdapter(this);
+        fragmentsAdapter = new MainFragmentsAdapter(getSupportFragmentManager(), getLifecycle());
         viewPager = findViewById(R.id.pager);
         viewPager.setAdapter(fragmentsAdapter);
 

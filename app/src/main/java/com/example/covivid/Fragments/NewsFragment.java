@@ -1,9 +1,15 @@
-package com.example.covivid.Activities;
+package com.example.covivid.Fragments;
 
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +24,7 @@ import com.example.covivid.R;
 import com.example.covivid.Retrofit.ITheGuardianAPI;
 import com.example.covivid.Utils.Common;
 
+import java.time.Duration;
 import java.util.List;
 
 import retrofit2.Call;
@@ -29,6 +36,7 @@ public class NewsFragment extends Fragment {
     private ITheGuardianAPI theGuardianApi;
     private NewsAdapter adapter;
     private RecyclerView recycler;
+    private TextView no_news_tv;
 
     @Nullable
     @Override
@@ -36,18 +44,21 @@ public class NewsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_news, container, false);
         recycler = rootView.findViewById(R.id.news_rv);
-
+        no_news_tv = rootView.findViewById(R.id.no_news_text);
         return rootView;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        Bundle args = getArguments();
-        theGuardianApi = Common.getNewsApi(getActivity());
         getNews();
+        no_news_tv.setVisibility(View.VISIBLE);
     }
 
-
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        theGuardianApi = Common.getNewsApi(context);
+    }
 
     private void getNews()
     {
@@ -64,7 +75,8 @@ public class NewsFragment extends Fragment {
 
            @Override
            public void onFailure(Call<NewsResponse> call, Throwable t) {
-
+               Toast.makeText(getActivity(), "Couldn't fetch news", Toast.LENGTH_SHORT).show();
+               no_news_tv.setVisibility(View.VISIBLE);
            }
        });
 
@@ -72,8 +84,14 @@ public class NewsFragment extends Fragment {
 
     private void displayNews(List<News> news)
     {
+        Log.d("DEBUG", "GetActivity() = " + getActivity().toString());
         recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
         adapter = new NewsAdapter(getActivity(), news);
+        adapter.setOnItemClickListener((position, v) -> {
+            startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse(news.get(position).getUrl())));;
+        });
         recycler.setAdapter(adapter);
+        no_news_tv.setVisibility(View.INVISIBLE);
     }
 }

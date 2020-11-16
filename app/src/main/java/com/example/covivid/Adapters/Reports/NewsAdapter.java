@@ -2,6 +2,7 @@ package com.example.covivid.Adapters.Reports;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +19,12 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import static android.text.Html.FROM_HTML_MODE_COMPACT;
+
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder> {
     Context context;
     List<News> news;
+    private static ClickListener clickListener;
 
     public NewsAdapter(Context context, List<News> news) {
         this.context = context;
@@ -41,8 +45,8 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     @SuppressLint("DefaultLocale")
     @Override
     public void onBindViewHolder(@NonNull NewsViewHolder holder, int position) {
-        holder.headline.setText(news.get(position).getFields().getHeadline());
-        holder.brief.setText(news.get(position).getFields().getTrailText());
+        holder.headline.setText(Html.fromHtml(news.get(position).getFields().getHeadline(), FROM_HTML_MODE_COMPACT));
+        holder.brief.setText(Html.fromHtml(news.get(position).getFields().getTrailText(), FROM_HTML_MODE_COMPACT));
         Picasso
                 .get()
                 .load(news.get(position).getFields().getThumbnail())
@@ -57,7 +61,7 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     public class NewsViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView headline, brief;
         ImageView thumbnail;
-        IItemClickListener clickListener;
+
 
         public NewsViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -68,13 +72,17 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
             itemView.setOnClickListener(this);
         }
 
-        public void setClickListener(IItemClickListener clickListener) {
-            this.clickListener = clickListener;
-        }
-
         @Override
-        public void onClick(View view) {
-            clickListener.onClick(view);
+        public void onClick(View v) {
+            clickListener.onItemClick(getAdapterPosition(), v);
         }
+    }
+
+    public void setOnItemClickListener(ClickListener clickListener) {
+        NewsAdapter.clickListener = clickListener;
+    }
+
+    public interface ClickListener {
+        void onItemClick(int position, View v);
     }
 }
