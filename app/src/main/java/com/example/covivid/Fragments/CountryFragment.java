@@ -71,7 +71,7 @@ public class CountryFragment extends Fragment {
     private TabLayout chartsTabLayout;
     private ViewPager2 chartsViewPager;
     private ChartFragmentsAdapter chartAdapter;
-    private final List<ChartFragment> fragments = new ArrayList<ChartFragment>(Arrays.asList(new ChartFragment(DEATHS,1), new ChartFragment(DEATHS,2), new ChartFragment(DEATHS,3)));
+    private final List<ChartFragment> fragments = new ArrayList<ChartFragment>(Arrays.asList(new ChartFragment(DEATHS,1), new ChartFragment(RECOVERED,2), new ChartFragment(ACTIVE_CASES,3)));
 
     @Nullable
     @Override
