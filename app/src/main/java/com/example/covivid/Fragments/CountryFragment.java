@@ -37,10 +37,12 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -263,7 +265,7 @@ public class CountryFragment extends Fragment {
             int activeCases = 0, recovered = 0, totalCases = 0, deaths =0;
             List<ComplexCovidReport> matchedReports = reports
                     .stream()
-                    .filter(report -> report.getDate().equals(from) || report.getDate().equals(to))
+                    .filter(report -> Common.convertToLocalDate(report.getDate()).equals(Common.convertToLocalDate(from)) || Common.convertToLocalDate(report.getDate()).equals(Common.convertToLocalDate(to)))
                     .collect(Collectors.toList());
 
             if(matchedReports.size() > 1) {
@@ -319,5 +321,4 @@ public class CountryFragment extends Fragment {
             animation.pauseAnimation();
             animation.setVisibility(View.INVISIBLE);
         }
-
     }

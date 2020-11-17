@@ -11,6 +11,11 @@ import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Retrofit.ITheGuardianAPI;
 import com.example.covivid.Retrofit.RetrofitClient;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+
 public class Common
 {
     public static final String COVID_BASE_URL = "https://api.covid19api.com";
@@ -50,4 +55,11 @@ public class Common
                 .getClient(context, GUARDIAN_BASE_URL)
                 .create(ITheGuardianAPI.class);
     }
+
+    public static LocalDate convertToLocalDate(Date dateToConvert) {
+        return Instant.ofEpochMilli(dateToConvert.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+    }
+
 }
