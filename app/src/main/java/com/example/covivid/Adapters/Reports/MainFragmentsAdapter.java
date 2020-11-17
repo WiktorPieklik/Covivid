@@ -19,7 +19,7 @@ public class MainFragmentsAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        if (position == 1)
+        if (position == 0)
         {
             return new NewsFragment();
         } else

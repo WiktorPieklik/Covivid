@@ -30,8 +30,9 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
 
-public class NewsFragment extends Fragment {
+public class NewsFragment extends Fragment  {
 
     private ITheGuardianAPI theGuardianApi;
     private NewsAdapter adapter;
@@ -76,6 +77,7 @@ public class NewsFragment extends Fragment {
            @Override
            public void onFailure(Call<NewsResponse> call, Throwable t) {
                Toast.makeText(getActivity(), "Couldn't fetch news", Toast.LENGTH_SHORT).show();
+               Log.d("ERROR", "The Guardian Api call failure");
                no_news_tv.setVisibility(View.VISIBLE);
            }
        });

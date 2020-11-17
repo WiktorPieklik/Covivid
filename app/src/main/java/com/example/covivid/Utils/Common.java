@@ -9,7 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.covivid.Model.CovidReport.BaseCovidReport;
 import com.example.covivid.Retrofit.ICovidAPI;
 import com.example.covivid.Retrofit.ITheGuardianAPI;
-import com.example.covivid.Retrofit.RetrofitClient;
+import com.example.covivid.Retrofit.RetrofitCovidClient;
+import com.example.covivid.Retrofit.RetrofitNewsClient;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -43,7 +44,7 @@ public class Common
 
     public static ICovidAPI getCovidAPI(Context context)
     {
-        return RetrofitClient
+        return RetrofitCovidClient
                 .getClient(context, COVID_BASE_URL)
                 .create(ICovidAPI.class);
     }
@@ -51,7 +52,7 @@ public class Common
 
     public static ITheGuardianAPI getNewsApi(Context context)
     {
-        return RetrofitClient
+        return RetrofitNewsClient
                 .getClient(context, GUARDIAN_BASE_URL)
                 .create(ITheGuardianAPI.class);
     }
