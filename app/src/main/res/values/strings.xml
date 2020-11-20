@@ -10,4 +10,8 @@
 
     <string name="retry">Retry</string>
     <string name="net_trouble_msg">You have no internet connection!</string>
+    <string name="active">Active</string>
+    <string name="no_news">Couldn\'t fetch the news.\n Try again later.</string>
+    <string name="fight">Fought back</string>
+
 </resources>

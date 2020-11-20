@@ -46,11 +46,23 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@android:drawable/button_onoff_indicator_off" />
 
+        <ImageButton
+            android:id="@+id/date_range_picker"
+            android:src="@drawable/ic_date_range_24px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="0dp"
+            android:background="@drawable/rounded_button"/>
+
         <TextView
             android:id="@+id/active_cases_txt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
+            android:textSize="@dimen/stats_text_size"
             android:text="@string/active_cases"
             app:layout_constraintEnd_toStartOf="@+id/guideline2"
             app:layout_constraintStart_toStartOf="parent"
@@ -61,6 +73,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
+            android:textSize="@dimen/stats_text_size"
             android:text="@string/recovered"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/guideline2"
@@ -71,6 +84,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="64dp"
+            android:textSize="@dimen/stats_text_size"
             android:text="@string/total_cases"
             app:layout_constraintEnd_toStartOf="@+id/guideline2"
             app:layout_constraintStart_toStartOf="parent"
@@ -82,6 +96,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="64dp"
             android:text="@string/deaths"
+            android:textSize="@dimen/stats_text_size"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/guideline2"
             app:layout_constraintTop_toBottomOf="@+id/recovered_no_txt" />
@@ -92,6 +107,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="0"
+            android:textSize="@dimen/stats_text_size"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             app:layout_constraintEnd_toStartOf="@+id/guideline2"
             app:layout_constraintStart_toStartOf="parent"
@@ -102,6 +118,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textSize="@dimen/stats_text_size"
             android:text="0"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             app:layout_constraintEnd_toEndOf="parent"
@@ -113,6 +130,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
+            android:textSize="@dimen/stats_text_size"
             android:text="0"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             app:layout_constraintEnd_toStartOf="@+id/guideline2"
@@ -125,19 +143,30 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="0"
+            android:textSize="@dimen/stats_text_size"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/guideline2"
             app:layout_constraintTop_toBottomOf="@+id/deaths_txt" />
 
-        <com.razerdp.widget.animatedpieview.AnimatedPieView
-            android:id="@+id/animated_pie_chart"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/chart_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/case_type_txt" />
+
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/charts_view_pager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/year_txt" />
+            app:layout_constraintTop_toBottomOf="@+id/chart_tabs" />
+
 
         <TextView
             android:id="@+id/case_type_txt"
@@ -145,6 +174,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="No internet"
+            android:visibility="invisible"
             android:textAppearance="?android:attr/textAppearanceLarge"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -156,6 +186,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="connection"
+            android:visibility="invisible"
             android:textAppearance="?attr/textAppearanceSubtitle2"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
