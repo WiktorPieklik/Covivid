@@ -19,23 +19,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.covivid.Adapters.Reports.NewsAdapter;
 import com.example.covivid.Model.CovidNews.News;
-import com.example.covivid.Model.CovidNews.NewsResponse;
 import com.example.covivid.R;
 import com.example.covivid.Retrofit.ITheGuardianAPI;
 import com.example.covivid.Utils.Common;
 
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class NewsFragment extends Fragment  {
 
     private ITheGuardianAPI theGuardianApi;
-    private NewsAdapter adapter;
     private RecyclerView recycler;
     private TextView no_news_tv;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Nullable
     @Override
@@ -50,7 +49,7 @@ public class NewsFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         getNews();
-        no_news_tv.setVisibility(View.VISIBLE);
+        no_news_tv.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -61,32 +60,24 @@ public class NewsFragment extends Fragment  {
 
     private void getNews()
     {
-       Call<NewsResponse> call = theGuardianApi.getNews("covid", Common.GUARDIAN_API_KEY, "thumbnail,trailText,headline");
-       call.enqueue(new Callback<NewsResponse>() {
-           @Override
-           public void onResponse(Call<NewsResponse> call, Response<NewsResponse> response) {
-               if(response.isSuccessful())
-               {
-                   NewsResponse newsResponse = response.body();
-                   displayNews(newsResponse.getNewsPack().getNews());
-               }
-           }
-
-           @Override
-           public void onFailure(Call<NewsResponse> call, Throwable t) {
-               Toast.makeText(getActivity(), "Couldn't fetch news", Toast.LENGTH_SHORT).show();
-               Log.d("ERROR", "The Guardian Api call failure");
-               no_news_tv.setVisibility(View.VISIBLE);
-           }
-       });
-
+       compositeDisposable.add(
+               theGuardianApi.getNews("covid", Common.GUARDIAN_API_KEY, "thumbnail,trailText,headline")
+               .subscribeOn(Schedulers.newThread())
+               .observeOn(AndroidSchedulers.mainThread())
+               .subscribe(
+                       newsResponse -> displayNews(newsResponse.getNewsPack().getNews()),
+                       throwable -> {
+                           Toast.makeText(getActivity(), "Couldn't fetch news", Toast.LENGTH_SHORT).show();
+                           Log.d("ERROR", "The Guardian Api call failure");
+                           no_news_tv.setVisibility(View.VISIBLE);
+               }));
     }
 
     private void displayNews(List<News> news)
     {
         Log.d("DEBUG", "GetActivity() = " + getActivity().toString());
         recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
-        adapter = new NewsAdapter(getActivity(), news);
+        NewsAdapter adapter = new NewsAdapter(getActivity(), news);
         adapter.setOnItemClickListener((position, v) -> {
             startActivity(new Intent(Intent.ACTION_VIEW,
                     Uri.parse(news.get(position).getUrl())));;
