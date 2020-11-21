@@ -1,4 +1,4 @@
-package com.example.covivid.Model;
+package com.example.covivid.Model.CovidNews;
 
 import com.google.gson.annotations.SerializedName;
 

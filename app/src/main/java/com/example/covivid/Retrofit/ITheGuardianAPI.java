@@ -1,7 +1,6 @@
 package com.example.covivid.Retrofit;
 
-import com.example.covivid.Model.NewsResponse;
-import com.example.covivid.Utils.Common;
+import com.example.covivid.Model.CovidNews.NewsResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

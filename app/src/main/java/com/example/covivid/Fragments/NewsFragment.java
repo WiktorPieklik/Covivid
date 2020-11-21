@@ -18,19 +18,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.covivid.Adapters.Reports.NewsAdapter;
-import com.example.covivid.Model.News;
-import com.example.covivid.Model.NewsResponse;
+import com.example.covivid.Model.CovidNews.News;
+import com.example.covivid.Model.CovidNews.NewsResponse;
 import com.example.covivid.R;
 import com.example.covivid.Retrofit.ITheGuardianAPI;
 import com.example.covivid.Utils.Common;
 
-import java.time.Duration;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class NewsFragment extends Fragment  {
 

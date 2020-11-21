@@ -12,8 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.covivid.Contracts.IItemClickListener;
-import com.example.covivid.Model.News;
+import com.example.covivid.Model.CovidNews.News;
 import com.example.covivid.R;
 import com.squareup.picasso.Picasso;
 
