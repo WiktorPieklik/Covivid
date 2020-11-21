@@ -1,12 +1,10 @@
-package com.example.covivid.Adapters.Reports;
+package com.example.covivid.Adapters.CovidReport;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.example.covivid.Fragments.CaseType;
-import com.example.covivid.Fragments.ChartFragment;
+import com.example.covivid.Fragments.CovidReport.ChartFragment;
 
 import java.util.List;
 

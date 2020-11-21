@@ -1,4 +1,4 @@
-package com.example.covivid.Fragments;
+package com.example.covivid.Fragments.CovidNews;
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,10 +17,10 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.covivid.Adapters.Reports.NewsAdapter;
-import com.example.covivid.Model.CovidNews.News;
+import com.example.covivid.Adapters.CovidNews.NewsAdapter;
+import com.example.covivid.Models.CovidNews.News;
 import com.example.covivid.R;
-import com.example.covivid.Retrofit.ITheGuardianAPI;
+import com.example.covivid.Retrofit.CovidNews.ITheGuardianAPI;
 import com.example.covivid.Utils.Common;
 
 import java.util.List;

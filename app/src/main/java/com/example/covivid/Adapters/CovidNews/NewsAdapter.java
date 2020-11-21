@@ -1,4 +1,4 @@
-package com.example.covivid.Adapters.Reports;
+package com.example.covivid.Adapters.CovidNews;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -12,7 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.covivid.Model.CovidNews.News;
+import com.example.covivid.Models.CovidNews.News;
 import com.example.covivid.R;
 import com.squareup.picasso.Picasso;
 

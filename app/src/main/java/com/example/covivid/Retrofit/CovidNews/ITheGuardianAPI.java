@@ -1,6 +1,6 @@
-package com.example.covivid.Retrofit;
+package com.example.covivid.Retrofit.CovidNews;
 
-import com.example.covivid.Model.CovidNews.NewsResponse;
+import com.example.covivid.Models.CovidNews.NewsResponse;
 
 import io.reactivex.rxjava3.core.Observable;
 import retrofit2.http.GET;

@@ -4,7 +4,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.covivid.Adapters.Reports.MainFragmentsAdapter;
+import com.example.covivid.Adapters.CovidReport.MainFragmentsAdapter;
 import com.example.covivid.R;
 import com.example.covivid.Utils.Common;
 

@@ -1,4 +1,4 @@
-package com.example.covivid.Fragments;
+package com.example.covivid.Fragments.CovidReport;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -8,13 +8,11 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,12 +22,12 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.airbnb.lottie.LottieAnimationView;
-import com.example.covivid.Adapters.Reports.ChartFragmentsAdapter;
-import com.example.covivid.Model.CovidReport.ComplexCovidReport;
-import com.example.covivid.Model.CovidReport.Country;
+import com.example.covivid.Adapters.CovidReport.ChartFragmentsAdapter;
+import com.example.covivid.Models.CovidReport.ComplexCovidReport;
+import com.example.covivid.Models.CovidReport.Country;
 import com.example.covivid.R;
 import com.example.covivid.Retrofit.Exceptions.NoInternetConnectionException;
-import com.example.covivid.Retrofit.ICovidAPI;
+import com.example.covivid.Retrofit.CovidReport.ICovidAPI;
 import com.example.covivid.Utils.Common;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.datepicker.MaterialDatePicker;
@@ -53,7 +51,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static com.example.covivid.Fragments.CaseType.*;
+import static com.example.covivid.Fragments.CovidReport.CaseType.*;
 
 public class CountryFragment extends Fragment {
 

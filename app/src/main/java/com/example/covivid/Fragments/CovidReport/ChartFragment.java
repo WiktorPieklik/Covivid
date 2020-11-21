@@ -1,4 +1,4 @@
-package com.example.covivid.Fragments;
+package com.example.covivid.Fragments.CovidReport;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.covivid.Model.CovidReport.ComplexCovidReport;
+import com.example.covivid.Models.CovidReport.ComplexCovidReport;
 import com.example.covivid.R;
 import com.razerdp.widget.animatedpieview.AnimatedPieView;
 import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;

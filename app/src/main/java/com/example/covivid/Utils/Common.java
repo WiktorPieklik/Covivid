@@ -6,11 +6,11 @@ import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.covivid.Model.CovidReport.BaseCovidReport;
-import com.example.covivid.Retrofit.ICovidAPI;
-import com.example.covivid.Retrofit.ITheGuardianAPI;
-import com.example.covivid.Retrofit.RetrofitCovidClient;
-import com.example.covivid.Retrofit.RetrofitNewsClient;
+import com.example.covivid.Models.CovidReport.BaseCovidReport;
+import com.example.covivid.Retrofit.CovidReport.ICovidAPI;
+import com.example.covivid.Retrofit.CovidNews.ITheGuardianAPI;
+import com.example.covivid.Retrofit.CovidReport.RetrofitCovidClient;
+import com.example.covivid.Retrofit.CovidNews.RetrofitNewsClient;
 
 import java.time.Instant;
 import java.time.LocalDate;
