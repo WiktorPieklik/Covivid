@@ -46,6 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -58,27 +61,31 @@ public class CountryFragment extends Fragment {
 
     private ImageButton dateRangeButton;
     private AutoCompleteTextView countryAutocomplete;
-    private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt, caseTypeTxt, yearTxt;
+    private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
+    private TabLayout chartsTabLayout;
+    private ViewPager2 chartsViewPager;
 
     private LottieAnimationView noInternetConnectionAnim;
 
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private Map<String, String> countries; // country_name : country_slug
     private ICovidAPI covidAPI;
     private String selectedCountrySlug;
     private Date from, to;
-    private TabLayout chartsTabLayout;
-    private ViewPager2 chartsViewPager;
-    private ChartFragmentsAdapter chartAdapter;
-    private final List<ChartFragment> fragments = new ArrayList<ChartFragment>(Arrays.asList(new ChartFragment(TOTAL_CASES,1), new ChartFragment(ACTIVE_CASES,2), new ChartFragment(RECOVERED,3), new ChartFragment(DEATHS,4)));
+    private final List<ChartFragment> fragments = new ArrayList<>(Arrays.asList(
+            new ChartFragment(TOTAL_CASES, 1),
+            new ChartFragment(ACTIVE_CASES, 2),
+            new ChartFragment(RECOVERED, 3),
+            new ChartFragment(DEATHS, 4)));
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState)
     {
         return inflater.inflate(R.layout.fragment_country, container, false);
-
     }
 
     @Override
@@ -86,7 +93,6 @@ public class CountryFragment extends Fragment {
 
         init(view);
         loadCountries();
-
     }
 
     @Override
@@ -135,7 +141,7 @@ public class CountryFragment extends Fragment {
             to = calendar.getTime();
             calendar.add(Calendar.MONTH, -3);
             from = calendar.getTime();
-            chartAdapter = new ChartFragmentsAdapter(this, fragments);
+            ChartFragmentsAdapter chartAdapter = new ChartFragmentsAdapter(this, fragments);
             chartsViewPager.setAdapter(chartAdapter);
             new TabLayoutMediator(chartsTabLayout, chartsViewPager,
                     (tab, position) -> {
@@ -169,8 +175,6 @@ public class CountryFragment extends Fragment {
             recoveredTxt = rootView.findViewById(R.id.recovered_no_txt);
             totalCasesTxt = rootView.findViewById(R.id.total_cases_no_txt);
             deathsTxt = rootView.findViewById(R.id.deaths_no_txt);
-            caseTypeTxt = rootView.findViewById(R.id.case_type_txt);
-            yearTxt = rootView.findViewById(R.id.year_txt);
 
             dateRangeButton = rootView.findViewById(R.id.date_range_picker);
 
@@ -234,27 +238,38 @@ public class CountryFragment extends Fragment {
 
         private void loadStatisticsForCountry(Date from, Date to)
         {
-            Call<List<ComplexCovidReport>> call = covidAPI.getTotalByCountry(selectedCountrySlug);
-            call.enqueue(new Callback<List<ComplexCovidReport>>() {
-                @Override
-                public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
-                    if(response.isSuccessful()) {
-                        List<ComplexCovidReport> reports = response.body();
-                        displayReport(reports, from, to);
-                        for (ChartFragment fragment : fragments) {
-                            fragment.updateChartData(reports, from);
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
-                    if(t instanceof NoInternetConnectionException)
-                    {
-                        reportNetworkIssue();
-                    }
-                }
-            });
+            compositeDisposable.add(
+                    covidAPI.getTotalByCountry(selectedCountrySlug)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(complexCovidReports -> {
+                            displayReport(complexCovidReports, from, to);
+                            for (ChartFragment fragment : fragments) {
+                                fragment.updateChartData(complexCovidReports, from);
+                            }
+                        }, throwable -> reportNetworkIssue())
+            );
+//            Call<List<ComplexCovidReport>> call = covidAPI.getTotalByCountry(selectedCountrySlug);
+//            call.enqueue(new Callback<List<ComplexCovidReport>>() {
+//                @Override
+//                public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
+//                    if(response.isSuccessful()) {
+//                        List<ComplexCovidReport> reports = response.body();
+//                        displayReport(reports, from, to);
+//                        for (ChartFragment fragment : fragments) {
+//                            fragment.updateChartData(reports, from);
+//                        }
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
+//                    if(t instanceof NoInternetConnectionException)
+//                    {
+//                        reportNetworkIssue();
+//                    }
+//                }
+//            });
         }
 
         private void displayReport(List<ComplexCovidReport> reports, Date from, Date to)
