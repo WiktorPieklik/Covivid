@@ -34,7 +34,7 @@ public class NewsFragment extends Fragment  {
     private ITheGuardianAPI theGuardianApi;
     private RecyclerView recycler;
     private TextView no_news_tv;
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Nullable
     @Override
@@ -62,15 +62,15 @@ public class NewsFragment extends Fragment  {
     {
        compositeDisposable.add(
                theGuardianApi.getNews("covid", Common.GUARDIAN_API_KEY, "thumbnail,trailText,headline")
-               .subscribeOn(Schedulers.newThread())
-               .observeOn(AndroidSchedulers.mainThread())
-               .subscribe(
-                       newsResponse -> displayNews(newsResponse.getNewsPack().getNews()),
-                       throwable -> {
-                           Toast.makeText(getActivity(), "Couldn't fetch news", Toast.LENGTH_SHORT).show();
-                           Log.d("ERROR", "The Guardian Api call failure");
-                           no_news_tv.setVisibility(View.VISIBLE);
-               }));
+                   .subscribeOn(Schedulers.newThread())
+                   .observeOn(AndroidSchedulers.mainThread())
+                   .subscribe(
+                           newsResponse -> displayNews(newsResponse.getNewsPack().getNews()),
+                           throwable -> {
+                               Toast.makeText(getActivity(), "Couldn't fetch news", Toast.LENGTH_SHORT).show();
+                               Log.d("ERROR", "The Guardian Api call failure");
+                               no_news_tv.setVisibility(View.VISIBLE);
+                   }));
     }
 
     private void displayNews(List<News> news)
