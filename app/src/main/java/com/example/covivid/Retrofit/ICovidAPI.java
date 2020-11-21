@@ -7,6 +7,7 @@ import com.example.covivid.Model.CovidReport.WorldCovidReport;
 
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Observable;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -18,14 +19,14 @@ public interface ICovidAPI
     Call<List<Country>> getCountries();
 
     @GET("total/country/{country}/status/confirmed")
-    Call<List<BaseCovidReport>> getByCountry(@Path("country") String countrySlug,
+    Observable<List<BaseCovidReport>> getByCountry(@Path("country") String countrySlug,
                                              @Query("from") String dateFrom,
                                              @Query("to") String dateTo);
 
     @GET("total/country/{country}")
-    Call<List<ComplexCovidReport>> getTotalByCountry(@Path("country") String countrySlug);
+    Observable<List<ComplexCovidReport>> getTotalByCountry(@Path("country") String countrySlug);
 
     @GET("world/total")
-    Call<List<WorldCovidReport>> getWorldsTotal();
+    Observable<List<WorldCovidReport>> getWorldsTotal();
 
 }
