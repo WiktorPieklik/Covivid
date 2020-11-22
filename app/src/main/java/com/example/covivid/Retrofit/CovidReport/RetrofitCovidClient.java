@@ -1,4 +1,4 @@
-package com.example.covivid.Retrofit;
+package com.example.covivid.Retrofit.CovidReport;
 
 import android.content.Context;
 
@@ -6,6 +6,7 @@ import com.example.covivid.Retrofit.Interceptors.NetworkConnectionInterceptor;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitCovidClient
@@ -21,6 +22,7 @@ public class RetrofitCovidClient
                     .baseUrl(baseUrl)
                     .client(okHttpClient.build())
                     .addConverterFactory(GsonConverterFactory.create())
+                    .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                     .build();
         }
 

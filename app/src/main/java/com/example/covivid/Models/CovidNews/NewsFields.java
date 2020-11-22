@@ -1,4 +1,4 @@
-package com.example.covivid.Model;
+package com.example.covivid.Models.CovidNews;
 
 public class NewsFields
 {

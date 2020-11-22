@@ -1,4 +1,4 @@
-package com.example.covivid.Fragments;
+package com.example.covivid.Fragments.CovidReport;
 
 public enum CaseType
 {
