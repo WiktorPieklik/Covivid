@@ -1,6 +1,7 @@
 package com.example.covivid.Fragments.CovidReport;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -22,6 +23,7 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.example.covivid.Activities.CompareActivity;
 import com.example.covivid.Adapters.CovidReport.ChartFragmentsAdapter;
 import com.example.covivid.Models.CovidReport.ComplexCovidReport;
 import com.example.covivid.Models.CovidReport.Country;
@@ -58,6 +60,7 @@ public class CountryFragment extends Fragment {
     private BottomSheetBehavior<?> covidBottomSheetBehavior;
 
     private ImageButton dateRangeButton;
+    private ImageButton compareButton;
     private AutoCompleteTextView countryAutocomplete;
     private TextView activeCasesTxt, recoveredTxt, totalCasesTxt, deathsTxt;
     private MaterialDatePicker<Pair<Long, Long>> dateRangePicker;
@@ -121,6 +124,8 @@ public class CountryFragment extends Fragment {
                 public void afterTextChanged(Editable s) { }
             });
 
+            //TODO: Probably pass here data from this fragment about first country
+            compareButton.setOnClickListener(v -> startActivity(new Intent(getActivity(), CompareActivity.class)));
             dateRangeButton.setOnClickListener(
                     view -> dateRangePicker.show(getParentFragmentManager(), dateRangePicker.toString()));
             dateRangePicker.addOnPositiveButtonClickListener(selection -> {
@@ -175,6 +180,7 @@ public class CountryFragment extends Fragment {
             deathsTxt = rootView.findViewById(R.id.deaths_no_txt);
 
             dateRangeButton = rootView.findViewById(R.id.date_range_picker);
+            compareButton = rootView.findViewById(R.id.compare_button);
 
             noInternetConnectionAnim = rootView.findViewById(R.id.no_internet_anim);
 

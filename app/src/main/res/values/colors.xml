@@ -9,4 +9,6 @@
     <color name="title_text_color">#258bd6</color>
     <color name="content_text_color">#999da4</color>
 
+    <color name="chart_background">#ffffff</color>
+
 </resources>

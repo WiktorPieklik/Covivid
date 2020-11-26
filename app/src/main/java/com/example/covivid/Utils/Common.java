@@ -1,6 +1,7 @@
 package com.example.covivid.Utils;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Random;
 
 public class Common
 {
@@ -61,6 +63,13 @@ public class Common
         return Instant.ofEpochMilli(dateToConvert.getTime())
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
+    }
+
+    public static int getRandomColor()
+    {
+        Random random = new Random();
+
+        return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
     }
 
 }

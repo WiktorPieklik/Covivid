@@ -1,6 +1,5 @@
 package com.example.covivid.Fragments.CovidReport;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.covivid.Models.CovidReport.ComplexCovidReport;
 import com.example.covivid.R;
+import com.example.covivid.Utils.Common;
 import com.razerdp.widget.animatedpieview.AnimatedPieView;
 import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;
 import com.razerdp.widget.animatedpieview.data.SimplePieInfo;
@@ -113,7 +113,7 @@ public class ChartFragment extends Fragment {
         for(int i = 0; i < 12; ++i) {
             int monthStats = getStatsCountForMonth(reportsWithinYear, i+1, caseType);
             String monthName = (new DateFormatSymbols()).getMonths()[i];
-            config.addData(new SimplePieInfo(monthStats, getRandomColor(), monthName));
+            config.addData(new SimplePieInfo(monthStats, Common.getRandomColor(), monthName));
         }
     }
 
@@ -169,10 +169,5 @@ public class ChartFragment extends Fragment {
         return localDate.getYear();
     }
 
-    private int getRandomColor()
-    {
-        Random random = new Random();
 
-        return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
-    }
 }
