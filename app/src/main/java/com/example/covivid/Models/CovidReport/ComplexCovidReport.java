@@ -5,16 +5,16 @@ import com.google.gson.annotations.SerializedName;
 public class ComplexCovidReport extends BaseCovidReport
 {
     @SerializedName("Confirmed")
-    protected int confirmed;
+    public int confirmed;
 
     @SerializedName("Deaths")
-    protected int deaths;
+    public int deaths;
 
     @SerializedName("Recovered")
-    protected int recovered;
+    public int recovered;
 
     @SerializedName("Active")
-    protected int active;
+    public int active;
 
     public int getConfirmed()
     {

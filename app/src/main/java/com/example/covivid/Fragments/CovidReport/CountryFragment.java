@@ -69,8 +69,8 @@ public class CountryFragment extends Fragment {
 
     private LottieAnimationView noInternetConnectionAnim;
 
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private Map<String, String> countries; // country_name : country_slug
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private ICovidAPI covidAPI;
     private String selectedCountrySlug;
     private Date from, to;
@@ -103,238 +103,221 @@ public class CountryFragment extends Fragment {
     }
 
     private void init(View rootView)
-        {
-            initViews(rootView);
-            countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
-                String key = parent.getItemAtPosition(position).toString();
-                selectedCountrySlug = countries.get(key);
-                hideKeyboard(view);
-                loadStatisticsForCountry(from, to);
-            });
-            countryAutocomplete.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                    covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                }
+    {
+        initViews(rootView);
+        countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
+            String key = parent.getItemAtPosition(position).toString();
+            selectedCountrySlug = countries.get(key);
+            hideKeyboard(view);
+            loadStatisticsForCountry(from, to);
+        });
+        countryAutocomplete.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
-                @Override
-                public void afterTextChanged(Editable s) { }
-            });
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
 
-            //TODO: Probably pass here data from this fragment about first country
-            compareButton.setOnClickListener(v -> startActivity(new Intent(getActivity(), CompareActivity.class)));
-            dateRangeButton.setOnClickListener(
-                    view -> dateRangePicker.show(getParentFragmentManager(), dateRangePicker.toString()));
-            dateRangePicker.addOnPositiveButtonClickListener(selection -> {
-                from = new Date(selection.first);
-                to = new Date(selection.second);
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(to);
-                calendar.add(Calendar.DAY_OF_MONTH, -1);
-                to = calendar.getTime();
-                loadStatisticsForCountry(from, to);
-            });
+        compareButton.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), CompareActivity.class);
+            intent.putExtra(CompareActivity.countrySlug, selectedCountrySlug);
+            intent.putExtra(CompareActivity.fromDate, from.getTime());
+            intent.putExtra(CompareActivity.toDate, to.getTime());
+            startActivity(intent);
+        });
+        dateRangeButton.setOnClickListener(
+                view -> dateRangePicker.show(getParentFragmentManager(), dateRangePicker.toString()));
+        dateRangePicker.addOnPositiveButtonClickListener(selection -> {
+            from = new Date(selection.first);
+            to = new Date(selection.second);
             Calendar calendar = Calendar.getInstance();
-            to = calendar.getTime();
             calendar.setTime(to);
             calendar.add(Calendar.DAY_OF_MONTH, -1);
             to = calendar.getTime();
-            calendar.add(Calendar.MONTH, -3);
-            from = calendar.getTime();
-            ChartFragmentsAdapter chartAdapter = new ChartFragmentsAdapter(this, fragments);
-            chartsViewPager.setAdapter(chartAdapter);
-            new TabLayoutMediator(chartsTabLayout, chartsViewPager,
-                    (tab, position) -> {
-                        switch (fragments.get(position).getCaseType())
-                        {
-                            case DEATHS:
-                                tab.setText(R.string.deaths);
-                                break;
-                            case RECOVERED:
-                                tab.setText(R.string.fight);
-                                break;
-                            case TOTAL_CASES:
-                                tab.setText(R.string.total_cases);
-                                break;
-                            case ACTIVE_CASES:
-                                tab.setText(R.string.active_cases);
-                                break;
-                        }
-            }
-            ).attach();
-
-        }
-
-        private void initViews(View rootView)
-        {
-            ConstraintLayout bottomSheetCovid = rootView.findViewById(R.id.covid_report_layout);
-            covidBottomSheetBehavior = BottomSheetBehavior.from(bottomSheetCovid);
-            covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-
-            activeCasesTxt = rootView.findViewById(R.id.active_cases_no_txt);
-            recoveredTxt = rootView.findViewById(R.id.recovered_no_txt);
-            totalCasesTxt = rootView.findViewById(R.id.total_cases_no_txt);
-            deathsTxt = rootView.findViewById(R.id.deaths_no_txt);
-
-            dateRangeButton = rootView.findViewById(R.id.date_range_picker);
-            compareButton = rootView.findViewById(R.id.compare_button);
-
-            noInternetConnectionAnim = rootView.findViewById(R.id.no_internet_anim);
-
-            countryAutocomplete = rootView.findViewById(R.id.country_autocomplete);
-
-            chartsTabLayout = rootView.findViewById(R.id.chart_tabs);
-            chartsViewPager = rootView.findViewById(R.id.charts_view_pager);
-
-            MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
-            builder
-                    .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
-                    .setSelection(
-                            new Pair<>(MaterialDatePicker.todayInUtcMilliseconds(),
-                                    MaterialDatePicker.todayInUtcMilliseconds()))
-                    .setTitleText(R.string.date_range_picker_hint);
-            dateRangePicker = builder.build();
-        }
-
-        private void loadCountries()
-        {
-            Call<List<Country>> call = covidAPI.getCountries();
-            call.enqueue(new Callback<List<Country>>() {
-                @Override
-                public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
-                    if(response.isSuccessful()) {
-                        List<Country> countriesList = response.body();
-                        countries = new HashMap<>();
-                        for(Country country : countriesList) {
-                            countries.put(country.getName(), country.getSlug());
-                        }
-                        displayCountries(countriesList);
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<List<Country>> call, Throwable t) {
-                    if(t instanceof NoInternetConnectionException)
+            loadStatisticsForCountry(from, to);
+        });
+        Calendar calendar = Calendar.getInstance();
+        to = calendar.getTime();
+        calendar.setTime(to);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        to = calendar.getTime();
+        calendar.add(Calendar.MONTH, -3);
+        from = calendar.getTime();
+        ChartFragmentsAdapter chartAdapter = new ChartFragmentsAdapter(this, fragments);
+        chartsViewPager.setAdapter(chartAdapter);
+        new TabLayoutMediator(chartsTabLayout, chartsViewPager,
+                (tab, position) -> {
+                    switch (fragments.get(position).getCaseType())
                     {
-                        countryAutocomplete.setEnabled(false);
-                        reportNetworkIssue();
+                        case DEATHS:
+                            tab.setText(R.string.deaths);
+                            break;
+                        case RECOVERED:
+                            tab.setText(R.string.fight);
+                            break;
+                        case TOTAL_CASES:
+                            tab.setText(R.string.total_cases);
+                            break;
+                        case ACTIVE_CASES:
+                            tab.setText(R.string.active_cases);
+                            break;
                     }
-                }
-            });
         }
-
-        private void displayCountries(List<Country> countries)
-        {
-            List<String> countriesNames = new ArrayList<>();
-            for(Country country : countries) {
-                countriesNames.add(country.getName());
-            }
-            ArrayAdapter<String> countryAdapter = new ArrayAdapter<>(
-                    getActivity(),
-                    R.layout.country_dropdown_item,
-                    countriesNames
-            );
-            countryAutocomplete.setAdapter(countryAdapter);
-        }
-
-        private void loadStatisticsForCountry(Date from, Date to)
-        {
-            compositeDisposable.add(
-                    covidAPI.getTotalByCountry(selectedCountrySlug)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(complexCovidReports -> {
-                            displayReport(complexCovidReports, from, to);
-                            for (ChartFragment fragment : fragments) {
-                                fragment.updateChartData(complexCovidReports, from);
-                            }
-                        }, throwable -> reportNetworkIssue())
-            );
-//            Call<List<ComplexCovidReport>> call = covidAPI.getTotalByCountry(selectedCountrySlug);
-//            call.enqueue(new Callback<List<ComplexCovidReport>>() {
-//                @Override
-//                public void onResponse(Call<List<ComplexCovidReport>> call, Response<List<ComplexCovidReport>> response) {
-//                    if(response.isSuccessful()) {
-//                        List<ComplexCovidReport> reports = response.body();
-//                        displayReport(reports, from, to);
-//                        for (ChartFragment fragment : fragments) {
-//                            fragment.updateChartData(reports, from);
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(Call<List<ComplexCovidReport>> call, Throwable t) {
-//                    if(t instanceof NoInternetConnectionException)
-//                    {
-//                        reportNetworkIssue();
-//                    }
-//                }
-//            });
-        }
-
-        private void displayReport(List<ComplexCovidReport> reports, Date from, Date to)
-        {
-            int activeCases = 0, recovered = 0, totalCases = 0, deaths =0;
-            List<ComplexCovidReport> matchedReports = reports
-                    .stream()
-                    .filter(report -> Common.convertToLocalDate(report.getDate()).equals(Common.convertToLocalDate(from)) || Common.convertToLocalDate(report.getDate()).equals(Common.convertToLocalDate(to)))
-                    .collect(Collectors.toList());
-
-            if(matchedReports.size() > 1) {
-                activeCases = Math.abs(
-                        matchedReports.get(0).getActive() - matchedReports.get(1).getActive());
-                recovered = Math.abs(
-                        matchedReports.get(0).getRecovered() - matchedReports.get(1).getRecovered());
-                totalCases = Math.abs(
-                        matchedReports.get(0).getConfirmed() - matchedReports.get(1).getConfirmed());
-                deaths = Math.abs(
-                        matchedReports.get(0).getDeaths() - matchedReports.get(1).getDeaths());
-            }
-            activeCasesTxt.setText(String.valueOf(activeCases));
-            recoveredTxt.setText(String.valueOf(recovered));
-            totalCasesTxt.setText(String.valueOf(totalCases));
-            deathsTxt.setText(String.valueOf(deaths));
-            covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-        }
-
-        private void hideKeyboard(View view)
-        {
-            InputMethodManager inputMethodManager = (InputMethodManager)view
-                    .getContext()
-                    .getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
-        }
-
-        private void reportNetworkIssue()
-        {
-            playAnim(noInternetConnectionAnim);
-            countryAutocomplete.setText("");
-            countryAutocomplete.setEnabled(false);
-            Snackbar snackbar = Snackbar.make(countryAutocomplete, R.string.net_trouble_msg, Snackbar.LENGTH_INDEFINITE);
-            snackbar
-                    .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
-                    .setAction(R.string.retry, view -> {
-                        loadCountries();
-                        countryAutocomplete.setEnabled(true);
-                        stopAnim(noInternetConnectionAnim);
-                    })
-                    .setActionTextColor(Color.WHITE)
-                    .show();
-        }
-
-        private void playAnim(LottieAnimationView animation)
-        {
-            animation.setVisibility(View.VISIBLE);
-            animation.playAnimation();
-        }
-
-        private void stopAnim(LottieAnimationView animation)
-        {
-            animation.pauseAnimation();
-            animation.setVisibility(View.INVISIBLE);
-        }
+        ).attach();
     }
+
+    private void initViews(View rootView)
+    {
+        ConstraintLayout bottomSheetCovid = rootView.findViewById(R.id.covid_report_layout);
+        covidBottomSheetBehavior = BottomSheetBehavior.from(bottomSheetCovid);
+        covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+
+        activeCasesTxt = rootView.findViewById(R.id.active_cases_no_txt);
+        recoveredTxt = rootView.findViewById(R.id.recovered_no_txt);
+        totalCasesTxt = rootView.findViewById(R.id.total_cases_no_txt);
+        deathsTxt = rootView.findViewById(R.id.deaths_no_txt);
+
+        dateRangeButton = rootView.findViewById(R.id.date_range_picker);
+        compareButton = rootView.findViewById(R.id.compare_button);
+
+        noInternetConnectionAnim = rootView.findViewById(R.id.no_internet_anim);
+
+        countryAutocomplete = rootView.findViewById(R.id.country_autocomplete);
+
+        chartsTabLayout = rootView.findViewById(R.id.chart_tabs);
+        chartsViewPager = rootView.findViewById(R.id.charts_view_pager);
+
+        MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
+        builder
+                .setInputMode(MaterialDatePicker.INPUT_MODE_CALENDAR)
+                .setSelection(
+                        new Pair<>(MaterialDatePicker.todayInUtcMilliseconds(),
+                                MaterialDatePicker.todayInUtcMilliseconds()))
+                .setTitleText(R.string.date_range_picker_hint);
+        dateRangePicker = builder.build();
+    }
+
+    private void loadCountries()
+    {
+        Call<List<Country>> call = covidAPI.getCountries();
+        call.enqueue(new Callback<List<Country>>() {
+            @Override
+            public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
+                if(response.isSuccessful()) {
+                    List<Country> countriesList = response.body();
+                    countries = new HashMap<>();
+                    for(Country country : countriesList) {
+                        countries.put(country.getName(), country.getSlug());
+                    }
+                    displayCountries(countriesList);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Country>> call, Throwable t) {
+                if(t instanceof NoInternetConnectionException)
+                {
+                    countryAutocomplete.setEnabled(false);
+                    reportNetworkIssue();
+                }
+            }
+        });
+    }
+
+    private void displayCountries(List<Country> countries)
+    {
+        List<String> countriesNames = new ArrayList<>();
+        for(Country country : countries) {
+            countriesNames.add(country.getName());
+        }
+        ArrayAdapter<String> countryAdapter = new ArrayAdapter<>(
+                getActivity(),
+                R.layout.country_dropdown_item,
+                countriesNames
+        );
+        countryAutocomplete.setAdapter(countryAdapter);
+    }
+
+    private void loadStatisticsForCountry(Date from, Date to)
+    {
+        compositeDisposable.add(
+                covidAPI.getTotalByCountry(selectedCountrySlug)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(complexCovidReports -> {
+                        displayReport(complexCovidReports, from, to);
+                        for (ChartFragment fragment : fragments) {
+                            fragment.updateChartData(complexCovidReports, from);
+                        }
+                    }, throwable -> reportNetworkIssue())
+        );
+    }
+
+    private void displayReport(List<ComplexCovidReport> reports, Date from, Date to)
+    {
+        int activeCases = 0, recovered = 0, totalCases = 0, deaths =0;
+        List<ComplexCovidReport> matchedReports = reports
+                .stream()
+                .filter(report -> Common.convertToLocalDate(report.getDate()).equals(Common.convertToLocalDate(from)) || Common.convertToLocalDate(report.getDate()).equals(Common.convertToLocalDate(to)))
+                .collect(Collectors.toList());
+
+        if(matchedReports.size() > 1) {
+            activeCases = Math.abs(
+                    matchedReports.get(0).getActive() - matchedReports.get(1).getActive());
+            recovered = Math.abs(
+                    matchedReports.get(0).getRecovered() - matchedReports.get(1).getRecovered());
+            totalCases = Math.abs(
+                    matchedReports.get(0).getConfirmed() - matchedReports.get(1).getConfirmed());
+            deaths = Math.abs(
+                    matchedReports.get(0).getDeaths() - matchedReports.get(1).getDeaths());
+        }
+        activeCasesTxt.setText(String.valueOf(activeCases));
+        recoveredTxt.setText(String.valueOf(recovered));
+        totalCasesTxt.setText(String.valueOf(totalCases));
+        deathsTxt.setText(String.valueOf(deaths));
+        covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    private void hideKeyboard(View view)
+    {
+        InputMethodManager inputMethodManager = (InputMethodManager)view
+                .getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+    }
+
+    private void reportNetworkIssue()
+    {
+        playAnim(noInternetConnectionAnim);
+        countryAutocomplete.setText("");
+        countryAutocomplete.setEnabled(false);
+        Snackbar snackbar = Snackbar.make(countryAutocomplete, R.string.net_trouble_msg, Snackbar.LENGTH_INDEFINITE);
+        snackbar
+                .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
+                .setAction(R.string.retry, view -> {
+                    loadCountries();
+                    countryAutocomplete.setEnabled(true);
+                    stopAnim(noInternetConnectionAnim);
+                })
+                .setActionTextColor(Color.WHITE)
+                .show();
+    }
+
+    private void playAnim(LottieAnimationView animation)
+    {
+        animation.setVisibility(View.VISIBLE);
+        animation.playAnimation();
+    }
+
+    private void stopAnim(LottieAnimationView animation)
+    {
+        animation.pauseAnimation();
+        animation.setVisibility(View.INVISIBLE);
+    }
+}
