@@ -157,7 +157,7 @@ public class CompareActivity extends AppCompatActivity
                 covidAPI.getTotalByCountry(countrySlug)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(complexCovidReports -> calculateReportsForDates(complexCovidReports, from, to))
+                        .subscribe(complexCovidReports -> calculateReportsForDates(complexCovidReports, from, to, firstCountryName))
         );
     }
 
@@ -168,7 +168,7 @@ public class CompareActivity extends AppCompatActivity
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(complexCovidReports -> {
-                            calculateReportsForDates(complexCovidReports, from, to);
+                            calculateReportsForDates(complexCovidReports, from, to, secondCountryName);
                             Pair<String, String> countries = new Pair<>(firstCountryName, secondCountryName);
                             Pair<Integer, Integer> deaths = new Pair<>(countriesReports.get(firstCountryName).getDeaths(), countriesReports.get(secondCountryName).getDeaths());
                             Pair<Integer, Integer> active = new Pair<>(countriesReports.get(firstCountryName).getActive(), countriesReports.get(secondCountryName).getActive());
@@ -182,7 +182,7 @@ public class CompareActivity extends AppCompatActivity
         );
     }
 
-    private void calculateReportsForDates(List<ComplexCovidReport> reports, Date from, Date to)
+    private void calculateReportsForDates(List<ComplexCovidReport> reports, Date from, Date to, String countryName)
     {
         int activeCases = 0, recovered = 0, totalCases = 0, deaths = 0;
         List<ComplexCovidReport> matchedReports = reports
@@ -205,7 +205,7 @@ public class CompareActivity extends AppCompatActivity
         report.recovered = recovered;
         report.confirmed = totalCases;
         report.deaths = deaths;
-        countriesReports.put(reports.get(0).getCountry(), report);
+        countriesReports.put(countryName, report);
     }
 
     void setupChart(BarChart chart, Pair<String, String> countries, Pair<Integer, Integer> data)
