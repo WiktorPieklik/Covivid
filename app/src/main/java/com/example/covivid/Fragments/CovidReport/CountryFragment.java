@@ -138,8 +138,13 @@ public class CountryFragment extends Fragment {
             to = new Date(selection.second);
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(to);
-            calendar.add(Calendar.DAY_OF_MONTH, -1);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
             to = calendar.getTime();
+
+            calendar.setTime(from);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
+            from = calendar.getTime();
             loadStatisticsForCountry(from, to);
         });
         Calendar calendar = Calendar.getInstance();

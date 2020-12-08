@@ -74,14 +74,7 @@ public class CompareActivity extends AppCompatActivity
         countryAutocomplete = findViewById(R.id.compare_country_autocomplete);
         scrollView = findViewById(R.id.compare_scroll_view);
         covidAPI = Common.getCovidAPI(this);
-//        OkHttpClient.Builder okHttpClient = new OkHttpClient.Builder()
-//                .addInterceptor(new NetworkConnectionInterceptor(this));
-//        covidAPI = (new Retrofit.Builder()
-//                .baseUrl(Common.COVID_BASE_URL)
-//                .client(okHttpClient.build())
-//                .addConverterFactory(GsonConverterFactory.create())
-//                .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
-//                .build()).create(ICovidAPI.class);
+        countriesReports = new HashMap<>();
 
         countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
             secondCountryName = parent.getItemAtPosition(position).toString();
@@ -96,7 +89,6 @@ public class CompareActivity extends AppCompatActivity
         });
 
         loadCountries();
-        fetchDataFromCallee();
     }
 
     private void loadCountries()
@@ -107,6 +99,7 @@ public class CompareActivity extends AppCompatActivity
             public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
                 if(response.isSuccessful()) {
                     countryList = response.body();
+                    fetchDataFromCallee();
                     displayCountries(countryList);
                 }
             }
@@ -149,33 +142,41 @@ public class CompareActivity extends AppCompatActivity
         from = new Date(getIntent().getLongExtra(fromDate, calendar.toInstant().getEpochSecond()));
         calendar.add(Calendar.DAY_OF_MONTH, 1);
         to = new Date(getIntent().getLongExtra(toDate, calendar.toInstant().getEpochSecond()));
+        loadStatisticsForCountries(from, to, firstCountrySlug);
     }
 
     private void displayStatisticsForCountries()
     {
-        Pair<String, String> countries = new Pair<>(firstCountryName, secondCountryName);
-        countriesReports = new HashMap<>();
-        loadStatisticsForCountries(from, to, firstCountrySlug);
-        loadStatisticsForCountries(from, to, secondCountrySlug);
-        Pair<Integer, Integer> deaths = new Pair<>(countriesReports.get(firstCountryName).getDeaths(), countriesReports.get(secondCountryName).getDeaths());
-        Pair<Integer, Integer> active = new Pair<>(countriesReports.get(firstCountryName).getActive(), countriesReports.get(secondCountryName).getActive());
-        Pair<Integer, Integer> total = new Pair<>(countriesReports.get(firstCountryName).getCases(), countriesReports.get(secondCountryName).getCases());
-        Pair<Integer, Integer> recovered = new Pair<>(countriesReports.get(firstCountryName).getRecovered(), countriesReports.get(secondCountryName).getRecovered());
-        setupChart(chart_deaths, countries, deaths);
-        setupChart(chart_active, countries, active);
-        setupChart(chart_total, countries, total);
-        setupChart(chart_recovered, countries, recovered);
-
+        loadStatisticsForCountryAndMakeCharts(from, to, secondCountrySlug);
     }
 
     private void loadStatisticsForCountries(Date from, Date to, String countrySlug)
     {
-        compositeDisposable.add(
+        (new CompositeDisposable()).add(
+                covidAPI.getTotalByCountry(countrySlug)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(complexCovidReports -> calculateReportsForDates(complexCovidReports, from, to))
+        );
+    }
+
+    private void loadStatisticsForCountryAndMakeCharts(Date from, Date to, String countrySlug)
+    {
+        (new CompositeDisposable()).add(
                 covidAPI.getTotalByCountry(countrySlug)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(complexCovidReports -> {
                             calculateReportsForDates(complexCovidReports, from, to);
+                            Pair<String, String> countries = new Pair<>(firstCountryName, secondCountryName);
+                            Pair<Integer, Integer> deaths = new Pair<>(countriesReports.get(firstCountryName).getDeaths(), countriesReports.get(secondCountryName).getDeaths());
+                            Pair<Integer, Integer> active = new Pair<>(countriesReports.get(firstCountryName).getActive(), countriesReports.get(secondCountryName).getActive());
+                            Pair<Integer, Integer> total = new Pair<>(countriesReports.get(firstCountryName).getConfirmed(), countriesReports.get(secondCountryName).getConfirmed());
+                            Pair<Integer, Integer> recovered = new Pair<>(countriesReports.get(firstCountryName).getRecovered(), countriesReports.get(secondCountryName).getRecovered());
+                            setupChart(chart_deaths, countries, deaths);
+                            setupChart(chart_active, countries, active);
+                            setupChart(chart_total, countries, total);
+                            setupChart(chart_recovered, countries, recovered);
                         })
         );
     }
@@ -197,14 +198,13 @@ public class CompareActivity extends AppCompatActivity
                     matchedReports.get(0).getConfirmed() - matchedReports.get(1).getConfirmed());
             deaths = Math.abs(
                     matchedReports.get(0).getDeaths() - matchedReports.get(1).getDeaths());
-
-            ComplexCovidReport report = new ComplexCovidReport();
-            report.active = activeCases;
-            report.recovered = recovered;
-            report.confirmed = totalCases;
-            report.deaths = deaths;
-            countriesReports.put(matchedReports.get(0).getCountry(), report);
         }
+        ComplexCovidReport report = new ComplexCovidReport();
+        report.active = activeCases;
+        report.recovered = recovered;
+        report.confirmed = totalCases;
+        report.deaths = deaths;
+        countriesReports.put(reports.get(0).getCountry(), report);
     }
 
     void setupChart(BarChart chart, Pair<String, String> countries, Pair<Integer, Integer> data)
