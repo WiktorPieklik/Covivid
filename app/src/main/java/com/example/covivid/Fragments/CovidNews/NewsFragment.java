@@ -58,6 +58,12 @@ public class NewsFragment extends Fragment  {
         theGuardianApi = Common.getNewsApi(context);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        getNews();
+    }
+
     private void getNews()
     {
        compositeDisposable.add(

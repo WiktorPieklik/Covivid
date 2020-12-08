@@ -55,7 +55,6 @@ public class CompareActivity extends AppCompatActivity
     private String firstCountrySlug, secondCountrySlug, firstCountryName, secondCountryName;
     private Date from, to;
     private List<Country> countryList;
-    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private Map<String, ComplexCovidReport> countriesReports;
 
     private AutoCompleteTextView countryAutocomplete;
@@ -87,6 +86,7 @@ public class CompareActivity extends AppCompatActivity
             scrollView.setVisibility(View.VISIBLE);
             displayStatisticsForCountries();
             Common.hideKeyboard(view);
+            scrollView.smoothScrollTo(0, 0);
         });
 
         loadCountries();
