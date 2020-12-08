@@ -108,7 +108,7 @@ public class CountryFragment extends Fragment {
         countryAutocomplete.setOnItemClickListener((parent, view, position, id) -> {
             String key = parent.getItemAtPosition(position).toString();
             selectedCountrySlug = countries.get(key);
-            hideKeyboard(view);
+            Common.hideKeyboard(view);
             loadStatisticsForCountry(from, to);
         });
         countryAutocomplete.addTextChangedListener(new TextWatcher() {
@@ -289,13 +289,13 @@ public class CountryFragment extends Fragment {
         covidBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
     }
 
-    private void hideKeyboard(View view)
-    {
-        InputMethodManager inputMethodManager = (InputMethodManager)view
-                .getContext()
-                .getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
-    }
+//    private void hideKeyboard(View view)
+//    {
+//        InputMethodManager inputMethodManager = (InputMethodManager)view
+//                .getContext()
+//                .getSystemService(Context.INPUT_METHOD_SERVICE);
+//        inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
+//    }
 
     private void reportNetworkIssue()
     {

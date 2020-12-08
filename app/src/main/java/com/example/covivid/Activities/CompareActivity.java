@@ -86,6 +86,7 @@ public class CompareActivity extends AppCompatActivity
                     .getSlug();
             scrollView.setVisibility(View.VISIBLE);
             displayStatisticsForCountries();
+            Common.hideKeyboard(view);
         });
 
         loadCountries();
