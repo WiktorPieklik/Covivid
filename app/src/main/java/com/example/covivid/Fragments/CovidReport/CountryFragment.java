@@ -150,7 +150,7 @@ public class CountryFragment extends Fragment {
         Calendar calendar = Calendar.getInstance();
         to = calendar.getTime();
         calendar.setTime(to);
-        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        calendar.add(Calendar.DAY_OF_MONTH, -4);
         to = calendar.getTime();
         calendar.add(Calendar.MONTH, -3);
         from = calendar.getTime();
