@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.covivid.R;
@@ -19,7 +20,7 @@ public class SplashActivity extends AppCompatActivity {
         Common.requestFullScreenActivity(this);
         setContentView(R.layout.activity_splash);
         Animation fadeAnim = AnimationUtils.loadAnimation(this, R.anim.fade_scale);
-        TextView appName = findViewById(R.id.app_name);
+        ImageView appName = findViewById(R.id.app_name);
         appName.setAnimation(fadeAnim);
 
 
