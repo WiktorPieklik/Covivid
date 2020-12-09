@@ -2,8 +2,10 @@ package com.example.covivid.Utils;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -70,6 +72,14 @@ public class Common
         Random random = new Random();
 
         return Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+    }
+
+    public static void hideKeyboard(View view)
+    {
+        InputMethodManager inputMethodManager = (InputMethodManager)view
+                .getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getApplicationWindowToken(), 0);
     }
 
 }

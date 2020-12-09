@@ -20,8 +20,8 @@ public interface ICovidAPI
 
     @GET("total/country/{country}/status/confirmed")
     Observable<List<BaseCovidReport>> getByCountry(@Path("country") String countrySlug,
-                                             @Query("from") String dateFrom,
-                                             @Query("to") String dateTo);
+                                                   @Query("from") String dateFrom,
+                                                   @Query("to") String dateTo);
 
     @GET("total/country/{country}")
     Observable<List<ComplexCovidReport>> getTotalByCountry(@Path("country") String countrySlug);

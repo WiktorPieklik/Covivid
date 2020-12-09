@@ -5,6 +5,7 @@
     <string name="total_cases">Total cases</string>
     <string name="deaths">Deaths</string>
     <string name="country_picker_hint">Choose country</string>
+    <string name="compare_country_picker_hint">Choose second country</string>
     <string name="choose_date_range">Pick date range</string>
     <string name="date_range_picker_hint">Choose date range</string>
 
